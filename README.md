@@ -59,7 +59,11 @@ server (`/v1`, e.g. llama.cpp / llama-swap).
 - Tool steps shown as a traceable timeline
 
 **Research**
-- Web search and page reading in normal chat, plus a more thorough research mode
+- Web search: a quick look on the web in any chat, with numbered sources
+- Deep research: the model plans sub-questions, runs 15–20 searches, reads and
+  analyses around 20 pages (PDFs included), closes gaps in a second round and
+  then writes a structured report with citations — every step visible live
+- Messages can be queued while an answer is still being written
 - Private network addresses are blocked for the tools
 
 **More**

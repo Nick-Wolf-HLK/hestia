@@ -55,7 +55,7 @@ export function Home({ t }: { t: Translate }) {
       images: payload.images,
       files: payload.files,
       model: model ?? startModell(settings, mode),
-      recherche: payload.recherche
+      suche: payload.suche
     })
   }
 

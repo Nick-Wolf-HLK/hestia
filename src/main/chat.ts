@@ -24,6 +24,7 @@ import type { ProviderRegistry } from './providers'
 import type { GenerateHandlers, GenerateRequest, LlmMessage, ToolCall } from './providers/types'
 import { log } from './logger'
 import { computeMetrics, estimateTokens } from './metrics'
+import { tiefenrecherche, tiefGrundlage, type ModellFrage, type Schritte } from './research/tief'
 
 /** Vom Agenten bereitgestellte Werkzeuge und deren Ausführung. */
 export interface ToolRuntime {
@@ -51,8 +52,10 @@ export interface RunOptions {
   ersetzt?: string
   /** Neu erzeugen: auf diese bestehende Frage noch einmal antworten. */
   antwortAuf?: string
-  /** Tiefere Recherche: gründlich im Web, Bericht mit Quellen. */
-  recherche?: boolean
+  /** Websuche eingeschaltet: im Web nachsehen, mit Quellen. */
+  websuche?: boolean
+  /** Tiefenrecherche: vorab planen, breit suchen, Quellen auswerten — dann der Bericht. */
+  tiefenrecherche?: boolean
 }
 
 const MAX_TOOL_STEPS_DEFAULT = 12
@@ -237,6 +240,39 @@ class Run {
     this.pausiert += Math.max(0, ms)
   }
 
+  /**
+   * Sichtbare Schritte eines vorgeschalteten Ablaufs (Tiefenrecherche): sie
+   * stehen in der Zeitlinie, aber nicht im Protokoll — das Modell bekommt am
+   * Ende nur die Zusammenfassung, nicht jeden Zwischenschritt.
+   */
+  schritte(): Schritte {
+    return {
+      beginn: (tool, args) => {
+        const id = `s-${randomUUID().slice(0, 8)}`
+        this.parts.push({ type: 'tool_call', id, tool, args })
+        this.emit({ streamId: this.streamId, type: 'tool_call', chatId: this.chatId, messageId: this.assistantMessage.id, callId: id, tool, args })
+        this.flush()
+        return id
+      },
+      ende: (id, tool, ok, output) => {
+        this.parts.push({ type: 'tool_result', id, tool, ok, output: output.slice(0, 8000) })
+        this.emit({ streamId: this.streamId, type: 'tool_result', chatId: this.chatId, messageId: this.assistantMessage.id, callId: id, tool, ok, preview: output.slice(0, 2000) })
+        this.flush()
+      }
+    }
+  }
+
+  /** Ergebnis eines vorgeschalteten Werkzeugs ins Protokoll: als Aufruf mit Antwort. */
+  vorabErgebnis(call: ToolCall, ok: boolean, output: string, alsWerkzeug: boolean): void {
+    if (alsWerkzeug) {
+      this.protocol.push({ role: 'assistant', content: '', toolCalls: [call] })
+      this.protocol.push({ role: 'user', content: '', toolResult: { callId: call.id, name: call.name, ok, output } })
+    } else {
+      // Modell ohne Werkzeuge: das Ergebnis als gewöhnliche Nachricht.
+      this.protocol.push({ role: 'user', content: `Ergebnis der Tiefenrecherche:\n\n${output}` })
+    }
+  }
+
   /** Assistent-Runde ins Protokoll übernehmen und Werkzeugergebnis anhängen. */
   recordAssistantTurn(calls: ToolCall[]): void {
     const text = this.stepTexts[this.stepTexts.length - 1] ?? ''
@@ -330,12 +366,19 @@ export class ChatRunner {
     teile.push(...verlaufTeile(chat, werkzeuge.has('chats_durchsuchen')))
     // Der Schalter „Tiefere Recherche“ im Eingabefeld: die Anweisung geht hier
     // mit, statt als Text im Eingabefeld zu stehen.
-    if (opts.recherche && (werkzeuge.has('recherche') || werkzeuge.has('websuche'))) {
+    if (opts.tiefenrecherche) {
       teile.push(
-        'Die Nutzer:in hat die tiefere Recherche eingeschaltet. Beantworte die Frage gründlich aus dem Web: ' +
-          (werkzeuge.has('recherche') ? 'nutze das Werkzeug recherche, ' : '') +
-          'stelle mehrere Suchanfragen, lies mehrere Seiten und schreibe einen Bericht mit nummerierten Quellenangaben [1], [2] … und einem Quellenverzeichnis am Ende. ' +
-          'Wenn es nichts zu recherchieren gibt (etwa bei einer Begrüßung), antworte normal.'
+        'Für diese Frage wurde vorab eine Tiefenrecherche durchgeführt; ihr Ergebnis (Teilfragen und nummerierte Quellen mit Notizen) steht im ' +
+          'Werkzeugergebnis „tiefenrecherche“. Schreibe daraus einen ausführlichen, gut gegliederten Bericht: eine kurze Zusammenfassung vorweg, ' +
+          'dann je Teilfrage ein Abschnitt mit den belegten Fakten, danach Widersprüche zwischen Quellen und offene Punkte. Belege jede Aussage mit ' +
+          '[n] — genau den Nummern aus dem Ergebnis — und schließe mit dem Quellenverzeichnis. Erfinde nichts, was nicht in den Notizen steht. ' +
+          'Suche nur dann noch einmal, wenn etwas Wesentliches fehlt.'
+      )
+    } else if (opts.websuche && (werkzeuge.has('recherche') || werkzeuge.has('websuche'))) {
+      teile.push(
+        'Die Nutzer:in hat die Websuche eingeschaltet. Sieh für diese Frage im Web nach: stelle Suchanfragen, lies die passenden Seiten und ' +
+          'belege die Antwort mit nummerierten Quellenangaben [1], [2] … und einem kurzen Quellenverzeichnis am Ende. ' +
+          'Wenn es nichts nachzusehen gibt (etwa bei einer Begrüßung), antworte normal.'
       )
     }
     const skills = opts.skills ?? []
@@ -481,6 +524,56 @@ export class ChatRunner {
 
     try {
       const maxSteps = opts.tools?.maxSteps ?? MAX_TOOL_STEPS_DEFAULT
+
+      if (opts.tiefenrecherche) {
+        const beginn = Date.now()
+        // Planen und Auswerten fragen dasselbe Modell, ohne Denken und ohne
+        // Werkzeuge: kurz und sachlich, sonst dauert jede Quelle Minuten.
+        // „Nicht denken“ wird immer mitgeschickt: Die Erkennung, ob ein Modell
+        // denken kann, ist unsicher — und ein Modell, das hier nachdenkt, verbraucht
+        // sein Antwortlimit fürs Denken und liefert keinen Text. Wer das Feld nicht
+        // kennt, bekommt die Anfrage vom Anbieter automatisch ohne es.
+        const fragModell: ModellFrage = async (system, nutzer, o) => {
+          const frag = async (maxTokens: number): Promise<string> => {
+            let text = ''
+            await resolved.client.generate(
+              {
+                model,
+                messages: [
+                  { role: 'system', content: system },
+                  { role: 'user', content: nutzer }
+                ],
+                thinking: 'off',
+                supportsThinking: true,
+                maxTokens
+              },
+              { onText: (t) => (text += t) },
+              o?.signal ?? controller.signal
+            )
+            return text.replace(/<think>[\s\S]*?<\/think>/g, '').trim()
+          }
+          const grenze = o?.maxTokens ?? 800
+          // Dachte es doch nach und kam nicht zum Antworten: einmal mit mehr Raum.
+          return (await frag(grenze)) || (await frag(grenze + 3000))
+        }
+        const schritte = run.schritte()
+        const hauptId = schritte.beginn('tiefenrecherche', { frage: opts.text })
+        let ok = true
+        let grundlage: string
+        try {
+          const ergebnis = await tiefenrecherche(opts.text, { fragModell, schritte, signal: controller.signal })
+          grundlage = tiefGrundlage(ergebnis)
+          schritte.ende(hauptId, 'tiefenrecherche', true, grundlage)
+          log.info('Tiefenrecherche', { chatId: chat.id, suchen: ergebnis.suchen, seiten: ergebnis.gelesen, quellen: ergebnis.quellen.length, ms: Date.now() - beginn })
+        } catch (e) {
+          if ((e as Error).name === 'AbortError' || controller.signal.aborted) throw e
+          ok = false
+          grundlage = `Tiefenrecherche gescheitert: ${(e as Error).message}`
+          schritte.ende(hauptId, 'tiefenrecherche', false, grundlage)
+        }
+        run.vorabErgebnis({ id: hauptId, name: 'tiefenrecherche', args: { frage: opts.text } }, ok, grundlage, Boolean(opts.tools))
+        run.pause(Date.now() - beginn)
+      }
 
       const stufe = opts.effort ?? denk.thinking
       const budget = denk.supportsThinking || resolved.client.kind !== 'ollama' ? denkBudget(stufe) : undefined

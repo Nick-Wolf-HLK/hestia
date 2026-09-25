@@ -124,8 +124,10 @@ export interface SendPayload {
   ersetzt?: string
   /** Neu erzeugen: auf diese Frage noch einmal antworten. */
   antwortAuf?: string
-  /** Tiefere Recherche eingeschaltet: gründlich im Web suchen, mit Quellen. */
-  recherche?: boolean
+  /** Websuche eingeschaltet: im Web nachsehen, mit Quellen. */
+  websuche?: boolean
+  /** Tiefenrecherche: planen, breit suchen, Quellen auswerten, dann Bericht. */
+  tiefenrecherche?: boolean
 }
 
 export interface ChatCreatePayload {

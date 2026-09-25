@@ -201,6 +201,16 @@ export async function leseSeite(url: string, opts: { zeichen?: number; signal?: 
   }
   if (!antwort.ok) throw new RechercheFehler('Diese Seite antwortet nicht.', String(antwort.status))
   const typ = antwort.headers.get('content-type') ?? ''
+  // PDFs (Merkblätter, Richtlinien, Studien) sind oft die eigentliche Quelle —
+  // also lesen statt ablehnen.
+  if (/pdf/i.test(typ) || (!typ && /\.pdf($|\?)/i.test(url))) {
+    const daten = Buffer.from(await antwort.arrayBuffer())
+    if (daten.length > 15 * 1024 * 1024) throw new RechercheFehler('Dieses PDF ist zu groß.')
+    const { textAusDatei } = await import('../kontext')
+    const { text } = await textAusDatei('seite.pdf', daten)
+    if (text.trim().length < 80) throw new RechercheFehler('Dieses PDF enthält kaum lesbaren Text.')
+    return text.slice(0, opts.zeichen ?? 6000)
+  }
   if (typ && !/text|html|json|xml/i.test(typ)) throw new RechercheFehler('Diese Seite ist kein Text.', typ)
   const text = textAusHtml(await antwort.text())
   if (text.length < 80) throw new RechercheFehler('Diese Seite enthält kaum Text.')

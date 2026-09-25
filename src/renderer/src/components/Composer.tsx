@@ -14,18 +14,19 @@ import {
   IconSendUp,
   IconStopSquare,
   IconGlobe,
+  IconBinoculars,
   IconMic
 } from './Icons'
 import { readFilesAsAttachments } from '../lib/format'
-import { appStore } from '../lib/store'
+import { appStore, type Suche } from '../lib/store'
 import { grundlos, wavAusSample } from '../lib/wav'
 
 export interface ComposerSubmit {
   text: string
   images: { mediaType: string; dataBase64: string; name?: string }[]
   files: { name: string; mediaType: string; text: string }[]
-  /** Tiefere Recherche eingeschaltet. */
-  recherche?: boolean
+  /** Eingeschaltete Suche: Websuche oder Tiefenrecherche. */
+  suche?: Suche
 }
 
 interface Props {
@@ -50,7 +51,7 @@ interface Props {
   /** Während einer Antwort darf gesendet werden — die Nachricht wartet dann (Warteschlange). */
   kannEinreihen?: boolean
   /** Tiefere Recherche war in diesem Chat schon an. */
-  rechercheStart?: boolean
+  sucheStart?: Suche
   onSubmit: (payload: ComposerSubmit) => void
   placeholder?: string
   autoFocus?: boolean
@@ -73,7 +74,7 @@ export function Composer({
   onModelSelect,
   streaming,
   kannEinreihen,
-  rechercheStart,
+  sucheStart,
   onStop,
   onSubmit,
   placeholder,
@@ -85,7 +86,7 @@ export function Composer({
   const [liest, setLiest] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   // Tiefere Recherche: bleibt für diesen Chat an, bis man sie ausschaltet.
-  const [recherche, setRecherche] = useState(Boolean(rechercheStart))
+  const [suche, setSuche] = useState<Suche | undefined>(sucheStart)
   const [permissionOpen, setPermissionOpen] = useState(false)
   const areaRef = useRef<HTMLTextAreaElement>(null)
   // Das Diktat: Aufnahme, Rückmeldung, und was das Gerät überhaupt kann.
@@ -242,7 +243,7 @@ export function Composer({
 
   const submit = (): void => {
     if (!canSend) return
-    onSubmit({ text: text.trim(), images: pending.images, files: pending.files, recherche: recherche || undefined })
+    onSubmit({ text: text.trim(), images: pending.images, files: pending.files, suche })
     setText('')
     setPending({ images: [], files: [] })
   }
@@ -334,12 +335,12 @@ export function Composer({
         }}
       />
 
-      {(pending.images.length > 0 || pending.files.length > 0 || liest > 0 || recherche) && (
+      {(pending.images.length > 0 || pending.files.length > 0 || liest > 0 || suche) && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-          {recherche && (
-            <span className="composer__schalter" title={t('composer.researchOn')}>
-              <IconGlobe size={13} /> {t('composer.research')}
-              <button type="button" aria-label={t('composer.researchOff')} title={t('composer.researchOff')} onClick={() => setRecherche(false)}>
+          {suche && (
+            <span className="composer__schalter" data-art={suche} title={t(suche === 'tief' ? 'composer.deepOn' : 'composer.webOn')}>
+              {suche === 'tief' ? <IconBinoculars size={13} /> : <IconGlobe size={13} />} {t(suche === 'tief' ? 'composer.deep' : 'composer.web')}
+              <button type="button" aria-label={t('composer.searchOff')} title={t('composer.searchOff')} onClick={() => setSuche(undefined)}>
                 ×
               </button>
             </span>
@@ -405,17 +406,21 @@ export function Composer({
                 }}
               />
               <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
-              <MenuItem
-                icon={<IconGlobe size={15} />}
-                label={t('composer.research')}
-                selected={recherche}
-                onClick={() => {
-                  // Ein Schalter, kein Textbaustein: das Eingabefeld bleibt, wie es ist.
-                  setRecherche((an) => !an)
-                  setMenuOpen(false)
-                  requestAnimationFrame(() => areaRef.current?.focus())
-                }}
-              />
+              {/* Zwei Schalter, die sich ausschließen: schnell nachsehen oder gründlich recherchieren. */}
+              {(['web', 'tief'] as const).map((art) => (
+                <MenuItem
+                  key={art}
+                  icon={art === 'tief' ? <IconBinoculars size={15} /> : <IconGlobe size={15} />}
+                  label={t(art === 'tief' ? 'composer.deep' : 'composer.web')}
+                  hint={t(art === 'tief' ? 'composer.deepHint' : 'composer.webHint')}
+                  selected={suche === art}
+                  onClick={() => {
+                    setSuche((jetzt) => (jetzt === art ? undefined : art))
+                    setMenuOpen(false)
+                    requestAnimationFrame(() => areaRef.current?.focus())
+                  }}
+                />
+              ))}
             </div>
           )}
         </div>

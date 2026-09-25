@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatMode, Message, MessageMetrics } from '@shared/types'
 import type { Translate } from '../../i18n'
-import { appStore, rechercheAn, useApp, type Eingereiht } from '../../lib/store'
+import { appStore, sucheJeChat, useApp, type Eingereiht } from '../../lib/store'
 import { Composer, type ComposerSubmit } from '../../components/Composer'
 import { DocumentPanel } from './DocumentPanel'
 import { startModell } from '@shared/startmodell'
@@ -77,7 +77,7 @@ export function ChatView({ t }: { t: Translate }) {
 
   const submit = async (payload: ComposerSubmit): Promise<void> => {
     if (!activeChatId) return
-    const nachricht = { text: payload.text, images: payload.images, files: payload.files, model, recherche: payload.recherche }
+    const nachricht = { text: payload.text, images: payload.images, files: payload.files, model, suche: payload.suche }
     // Läuft gerade eine Antwort: einreihen statt abweisen — geht danach von allein raus.
     if (streaming || wartend.length > 0) {
       appStore.einreihen(activeChatId, nachricht)
@@ -174,7 +174,7 @@ export function ChatView({ t }: { t: Translate }) {
             }}
             streaming={streaming}
             kannEinreihen
-            rechercheStart={activeChatId ? rechercheAn.has(activeChatId) : false}
+            sucheStart={activeChatId ? sucheJeChat.get(activeChatId) : undefined}
             onStop={() => {
               if (activeChatId) void appStore.stopStream(activeChatId)
             }}
@@ -675,6 +675,9 @@ const STEP_KEYS = {
   websuche: { one: 'step.websuche', many: 'step.websuche.plural', pending: 'step.websuche.pending' },
   webseite_lesen: { one: 'step.webseite_lesen', many: 'step.webseite_lesen.plural', pending: 'step.webseite_lesen.pending' },
   recherche: { one: 'step.recherche', many: 'step.recherche.plural', pending: 'step.recherche.pending' },
+  tiefenrecherche: { one: 'step.tiefenrecherche', many: 'step.tiefenrecherche.plural', pending: 'step.tiefenrecherche.pending' },
+  tiefenrecherche_plan: { one: 'step.tiefenrecherche_plan', many: 'step.tiefenrecherche_plan.plural', pending: 'step.tiefenrecherche_plan.pending' },
+  tiefenrecherche_luecken: { one: 'step.tiefenrecherche_luecken', many: 'step.tiefenrecherche_luecken.plural', pending: 'step.tiefenrecherche_luecken.pending' },
   chats_durchsuchen: { one: 'step.chats_durchsuchen', many: 'step.chats_durchsuchen.plural', pending: 'step.chats_durchsuchen.pending' },
   letzte_chats: { one: 'step.letzte_chats', many: 'step.letzte_chats.plural', pending: 'step.letzte_chats.pending' },
   dokument_lesen: { one: 'step.dokument_lesen', many: 'step.dokument_lesen.plural', pending: 'step.dokument_lesen.pending' },

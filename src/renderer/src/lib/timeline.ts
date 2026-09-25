@@ -93,7 +93,7 @@ export function buildTimeline(parts: ContentPart[]): TimelineEntry[] {
 const PHRASED = new Set([
   'list_dir', 'read_file', 'search_files', 'write_file', 'edit_file', 'run_command', 'create_document', 'todo',
   'erinnerung_merken', 'erinnerung_aendern', 'erinnerung_loeschen', 'projekt_durchsuchen', 'projekt_datei_lesen',
-  'dokument_lesen', 'dokument_bearbeiten', 'dokument_wiederherstellen', 'chats_durchsuchen', 'letzte_chats', 'websuche', 'webseite_lesen', 'recherche'
+  'dokument_lesen', 'dokument_bearbeiten', 'dokument_wiederherstellen', 'chats_durchsuchen', 'letzte_chats', 'websuche', 'webseite_lesen', 'recherche', 'tiefenrecherche', 'tiefenrecherche_plan', 'tiefenrecherche_luecken'
 ])
 
 /** Der Schlüssel, unter dem die Oberfläche den Schritt benennt. */
@@ -136,7 +136,11 @@ export function stepDetail(step: ToolStep): string {
     case 'webseite_lesen':
       return pick('url')
     case 'recherche':
+    case 'tiefenrecherche':
       return pick('frage')
+    case 'tiefenrecherche_plan':
+    case 'tiefenrecherche_luecken':
+      return ''
     case 'letzte_chats':
       return ''
     case 'dokument_lesen':

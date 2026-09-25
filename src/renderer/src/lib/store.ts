@@ -30,8 +30,9 @@ import type {
 const beendeteLaeufe = new Set<string>()
 /** Chats, von denen nur das Ende eines Laufs bekannt ist (vom Handy gestartet) — beim Öffnen ganz laden. */
 const teilGeladen = new Set<string>()
-/** Chats mit eingeschalteter tieferer Recherche — der Schalter bleibt, bis man ihn ausmacht. */
-export const rechercheAn = new Set<string>()
+/** Suchart je Chat (Websuche oder Tiefenrecherche) — der Schalter bleibt, bis man ihn ausmacht. */
+export type Suche = 'web' | 'tief'
+export const sucheJeChat = new Map<string, Suche>()
 
 /** Eine Nachricht, die wartet, bis die laufende Antwort fertig ist. */
 export interface Eingereiht {
@@ -40,7 +41,7 @@ export interface Eingereiht {
   images?: { mediaType: string; dataBase64: string; name?: string }[]
   files?: { name: string; mediaType: string; text: string }[]
   model?: string
-  recherche?: boolean
+  suche?: Suche
 }
 
 export type ViewName =
@@ -260,13 +261,14 @@ export const appStore = {
     model?: string
     ersetzt?: string
     antwortAuf?: string
-    recherche?: boolean
+    suche?: Suche
   }): Promise<void> {
-    if (payload.recherche) rechercheAn.add(payload.chatId)
-    else if (!payload.ersetzt && !payload.antwortAuf) rechercheAn.delete(payload.chatId)
+    const { suche, ...rest } = payload
+    if (suche) sucheJeChat.set(payload.chatId, suche)
+    else if (!payload.ersetzt && !payload.antwortAuf) sucheJeChat.delete(payload.chatId)
     try {
       // Der Hauptprozess antwortet sofort; Ende und Fehler kommen als Ereignisse.
-      const { streamId } = await window.desk.messages.send(payload)
+      const { streamId } = await window.desk.messages.send({ ...rest, websuche: suche === 'web' || undefined, tiefenrecherche: suche === 'tief' || undefined })
       // Merken, womit zuletzt gesendet wurde: Nach dem nächsten Öffnen ist
       // genau dieses Modell wieder eingestellt.
       const benutzt = payload.model ?? state.chats.find((c) => c.id === payload.chatId)?.model

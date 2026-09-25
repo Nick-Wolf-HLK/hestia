@@ -4,14 +4,14 @@
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const gesendet: Array<{ chatId: string; text: string; recherche?: boolean }> = []
+const gesendet: Array<{ chatId: string; text: string; websuche?: boolean; tiefenrecherche?: boolean }> = []
 let laufNummer = 0
 
 vi.stubGlobal('window', {
   desk: {
     chats: { list: async () => [], get: async () => ({ messages: [] }) },
     messages: {
-      send: async (payload: { chatId: string; text: string; recherche?: boolean }) => {
+      send: async (payload: { chatId: string; text: string; websuche?: boolean; tiefenrecherche?: boolean }) => {
         gesendet.push(payload)
         return { streamId: `lauf-${++laufNummer}` }
       }
@@ -32,7 +32,7 @@ describe('Warteschlange', () => {
   it('hält Nachrichten zurück, solange eine Antwort läuft, und sendet sie danach nacheinander', async () => {
     appStore.beginStream('s0', 'c1')
     appStore.einreihen('c1', { text: 'Noch etwas' })
-    appStore.einreihen('c1', { text: 'Und noch etwas', recherche: true })
+    appStore.einreihen('c1', { text: 'Und noch etwas', suche: 'tief' })
     await warte()
     expect(gesendet).toHaveLength(0)
     expect(appStore.get().warteschlange['c1']!.map((e) => e.text)).toEqual(['Noch etwas', 'Und noch etwas'])
@@ -43,11 +43,12 @@ describe('Warteschlange', () => {
     expect(gesendet.map((g) => g.text)).toEqual(['Noch etwas'])
     expect(appStore.get().warteschlange['c1']!.map((e) => e.text)).toEqual(['Und noch etwas'])
 
-    // Deren Antwort fertig → die nächste, mit eingeschalteter Recherche.
+    // Deren Antwort fertig → die nächste, mit eingeschalteter Tiefenrecherche.
     appStore.applyStreamEvent({ streamId: 'lauf-1', type: 'done', chatId: 'c1', messageId: '' })
     await warte()
     expect(gesendet.map((g) => g.text)).toEqual(['Noch etwas', 'Und noch etwas'])
-    expect(gesendet[1]!.recherche).toBe(true)
+    expect(gesendet[1]!.tiefenrecherche).toBe(true)
+    expect(gesendet[1]!.websuche).toBeUndefined()
     expect(appStore.get().warteschlange['c1']).toEqual([])
   })
 

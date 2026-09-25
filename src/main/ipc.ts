@@ -143,7 +143,8 @@ const sendSchema = z.object({
   effort: z.enum(['low', 'medium', 'high']).optional(),
   ersetzt: z.string().min(1).optional(),
   antwortAuf: z.string().min(1).optional(),
-  recherche: z.boolean().optional()
+  websuche: z.boolean().optional(),
+  tiefenrecherche: z.boolean().optional()
 })
 
 function handle<TInput, TOutput>(channel: string, fn: (input: TInput) => TOutput | Promise<TOutput>): void {
@@ -590,7 +591,8 @@ export function registerIpc(deps: Deps): void {
         effort: payload.effort,
         ersetzt: payload.ersetzt,
         antwortAuf: payload.antwortAuf,
-        recherche: payload.recherche,
+        websuche: payload.websuche,
+        tiefenrecherche: payload.tiefenrecherche,
         tools,
         skills
       },
