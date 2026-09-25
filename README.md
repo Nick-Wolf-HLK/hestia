@@ -14,6 +14,21 @@ Developed by **ScaleWise** — [www.scalewise-ai.de](https://www.scalewise-ai.de
 
 The name: **Hestia** is the Greek goddess of the hearth and home.
 
+## Download
+
+Ready-made packages are on the [Releases page](https://github.com/Nick-Wolf-HLK/hestia/releases/latest):
+
+| File | For |
+| --- | --- |
+| `hestiadesk_<version>_amd64.deb` | Ubuntu / Debian — `sudo apt install ./hestiadesk_<version>_amd64.deb` |
+| `Hestia-<version>.AppImage` | any modern Linux — `chmod +x`, then start it |
+| `Hestia-<version>-arm64.dmg` | Mac with Apple Silicon (M1 and newer) |
+| `Hestia-<version>-x64.dmg` | Mac with Intel |
+
+The macOS builds are made automatically on GitHub and are **not signed**: on first
+start, right-click the app → "Open" and confirm. They are new and less tested than
+the Linux builds — feedback is welcome.
+
 ## Origin
 
 Hestia was developed with a local open-weights model: **Qwen3.8 Flash-Next** —

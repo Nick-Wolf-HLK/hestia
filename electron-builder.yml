@@ -36,6 +36,21 @@ linux:
   mimeTypes:
     - x-scheme-handler/hestia
 
+# macOS: ohne Apple-Entwicklerkonto unsigniert — beim ersten Öffnen per
+# Rechtsklick → „Öffnen“ bestätigen. Gebaut wird auf GitHub (siehe .github/workflows).
+mac:
+  target:
+    - target: dmg
+      arch:
+        - arm64
+        - x64
+  category: public.app-category.productivity
+  icon: build/icon.png
+  identity: null
+
+dmg:
+  artifactName: Hestia-${version}-${arch}.dmg
+
 deb:
   depends:
     - libgtk-3-0

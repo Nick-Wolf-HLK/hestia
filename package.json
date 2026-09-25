@@ -1,6 +1,6 @@
 {
   "name": "hestiadesk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Desktop-App für lokale Modelle: Chat und ein Agent, der im eigenen Ordner arbeitet (Hestia)",
   "main": "./out/main/index.js",
   "private": true,
