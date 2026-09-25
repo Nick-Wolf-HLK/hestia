@@ -1,0 +1,68 @@
+{
+  "name": "hestiadesk",
+  "version": "0.1.0",
+  "description": "Desktop-App für lokale Modelle: Chat und ein Agent, der im eigenen Ordner arbeitet (Hestia)",
+  "main": "./out/main/index.js",
+  "private": true,
+  "author": {
+    "name": "ScaleWise",
+    "url": "https://www.scalewise-ai.de"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "dev:debug": "electron-vite dev --inspect=9229",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck:node": "tsc -p tsconfig.node.json --noEmit",
+    "typecheck:web": "tsc -p tsconfig.web.json --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web && npm run typecheck:tests",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dist:linux": "electron-vite build && electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "docx": "^9.7.1",
+    "docx-preview": "^0.4.1",
+    "dompurify": "^3.2.6",
+    "marked": "^15.0.12",
+    "pdfjs-dist": "^6.3.289",
+    "qrcode": "1.5.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.15.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.6.0",
+    "electron": "41.7.1",
+    "electron-builder": "^26.0.12",
+    "electron-vite": "^3.1.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^17.12.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.70.1",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "electron-builder",
+      "esbuild",
+      "better-sqlite3"
+    ]
+  },
+  "desktopName": "com.local.hestia.desktop",
+  "homepage": "https://github.com/Nick-Wolf-HLK/hestia"
+}

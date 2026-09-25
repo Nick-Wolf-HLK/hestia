@@ -1,0 +1,49 @@
+appId: com.local.hestia
+productName: Hestia
+copyright: Copyright © 2026 ScaleWise
+
+directories:
+  buildResources: build
+  output: release
+
+files:
+  - out/**
+  - build/icon.png
+  - build/icons/**
+  - build/pwa/*.png
+  - package.json
+
+asar: true
+asarUnpack:
+  - '**/*.node'
+
+linux:
+  target:
+    - deb
+    - AppImage
+  category: Utility
+  maintainer: ScaleWise <hestia@example.invalid>
+  vendor: ScaleWise
+  synopsis: Lokale Modelle. Chat und Agent im eigenen Ordner.
+  # Einzeilig: sie wird zum „Comment" des Starteintrags, und dort gibt es keine Umbrüche.
+  description: Desktop-Client für lokale Sprachmodelle — Chat und ein Agent, der im gewählten Ordner arbeitet.
+  icon: build/icons
+  syncDesktopName: true
+  # Stichwörter für die Suche im Anwendungsmenü.
+  desktop:
+    entry:
+      Keywords: KI;Chat;Ollama;llama.cpp;Agent;
+  mimeTypes:
+    - x-scheme-handler/hestia
+
+deb:
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libasound2
+    - libgbm1
+
+appImage:
+  license: LICENSE.txt

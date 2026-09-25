@@ -1,0 +1,16 @@
+node_modules/
+out/
+release/
+*.tsbuildinfo
+.DS_Store
+*.log
+
+# Zufälle und Arbeitszustände
+.env
+.env.*
+*.db
+*.db-wal
+*.db-shm
+.eslintcache
+coverage/
+*.pyc

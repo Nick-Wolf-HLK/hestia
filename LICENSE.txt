@@ -1,0 +1,16 @@
+MIT-Lizenz
+
+Copyright (c) 2026 ScaleWise
+
+Hiermit wird jeder Person, die eine Kopie dieser Software und der zugehörigen
+Dokumentationsdateien erhält, unentgeltlich die Erlaubnis erteilt, die Software
+ohne Einschränkung zu nutzen, zu vervielfältigen, zu bearbeiten, zu
+veröffentlichen, zu verteilen, unterzulizieren und/oder zu verkaufen sowie
+Personen, denen die Software zur Verfügung gestellt wird, dies zu gestatten,
+vorausgesetzt, die obigen Copyright-Hinweise und dieser Lizenzhinweis werden in
+allen Kopien oder wesentlichen Teilen der Software aufgenommen.
+
+DIE SOFTWARE WIRD "WIE BESEHEN" BEREITGESTELLT, OHNE AUSDRÜCKLICHE ODER
+STILLSCHWEIGENDE GEWÄHRLEISTUNG IRGENDEINER ART, EINSCHLIESSLICH, ABER NICHT
+BESCHRÄNKT AUF DIE GEWÄHRLEISTUNG DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN
+BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG VON RECHTEN DRITTER.

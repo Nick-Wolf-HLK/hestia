@@ -1,0 +1,2968 @@
+/* Layout und Komponenten. Farben/ Radien kommen ausschließlich aus tokens.css. */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--titlebar-height) 1fr;
+  height: 100%;
+  background: var(--bg);
+}
+/* Die Rasterfelder werden vergeben, nicht der Reihenfolge überlassen. Sonst
+   rutscht die Hauptfläche in die Nullspalte, sobald die Leiste verschwindet —
+   und mit ihr das Eingabefeld, das dann dreißig Pixel breit in der Ecke steht. */
+.app-shell[data-sidebar='closed'] {
+  grid-template-columns: 0 1fr;
+}
+.app-shell[data-sidebar='closed'] .sidebar {
+  display: none;
+}
+.sidebar {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+/* ---------------------------------------------------------------- Titelleiste */
+.titlebar {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  -webkit-app-region: drag;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+}
+.titlebar button,
+.titlebar input {
+  -webkit-app-region: no-drag;
+}
+.titlebar__spacer {
+  flex: 1;
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: background 120ms ease, color 120ms ease;
+}
+.icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.icon-btn[data-active='true'] {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+}
+.segmented button {
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  color: var(--text-muted);
+  /* Ein langes Wort wie „In Abständen" darf die Leiste nicht zu zwei Zeilen
+     auseinanderziehen. */
+  white-space: nowrap;
+}
+.segmented button[data-active='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ------------------------------------------------------------------- Sidebar */
+.sidebar {
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 4px 10px 10px;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+}
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-align: left;
+}
+.nav-item:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.nav-item[data-active='true'] {
+  background: var(--surface-hover);
+  color: var(--text);
+  font-weight: 520;
+}
+.nav-item__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.badge {
+  padding: 1px 6px;
+  font-size: 10.5px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.sidebar__section {
+  margin-top: 14px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.chat-list {
+  margin-top: 4px;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.chat-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-align: left;
+}
+.chat-row:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.chat-row[data-active='true'] {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.chat-row__title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-row__actions {
+  display: none;
+  gap: 2px;
+}
+.chat-row:hover .chat-row__actions {
+  display: inline-flex;
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+.dot[data-tone='warning'] {
+  background: var(--warning);
+}
+.dot[data-tone='done'] {
+  background: var(--text-muted);
+}
+
+.sidebar__footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ Hauptbereich */
+.main {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg);
+}
+.main__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+}
+.pane {
+  width: min(760px, 100%);
+  padding: 24px 28px 12px;
+}
+
+/* Home */
+.home {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100%;
+  padding: 32px 28px 8px;
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+.home__greeting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 0 0 22px;
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.home__logo {
+  color: var(--accent);
+  display: inline-flex;
+}
+
+/* Über der Begrüßung glimmt die Flamme ruhig — dasselbe Zeichen wie in einer
+   Antwort, nur im Ruhetempo. Die Schale steht still. */
+.home__logo .logo-mark__ember {
+  animation: flamme-ruhe 5.5s ease-in-out infinite;
+}
+
+/* Composer */
+.composer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 12px 14px 10px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+.composer:focus-within {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-lg);
+}
+.composer__input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  resize: none;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1.5;
+  max-height: 280px;
+  min-height: 26px;
+  user-select: text;
+}
+.composer__input::placeholder {
+  color: var(--text-faint);
+}
+.composer__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  /* Neben offener Vorschau wird die Spalte schmal: umbrechen statt abschneiden. */
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+.composer__spacer {
+  flex: 1;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  font-size: 12.5px;
+  max-width: 260px;
+}
+.pill:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.pill__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Der Zusatz hinter dem Modellnamen braucht einen eigenen Atemraum, sonst
+   klebt „deepseek-v4.1-flash:cloudAus" aneinander. */
+.pill__note {
+  flex: none;
+  padding-left: 7px;
+  margin-left: 1px;
+  border-left: 1px solid var(--border);
+}
+.send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+.send[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+.send[data-stop='true'] {
+  background: var(--text);
+  color: var(--bg);
+}
+
+/* Unter dem Composer (Agent) */
+.agent-strip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+.folder-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border-strong);
+  color: var(--text-muted);
+}
+.folder-chip[data-set='true'] {
+  border-style: solid;
+  color: var(--text);
+}
+
+/* Aufgabenliste */
+.task-section {
+  margin-top: 26px;
+}
+.task-section__title {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  margin-bottom: 6px;
+}
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 6px;
+  border-top: 1px solid var(--border);
+}
+.task-row__main {
+  flex: 1;
+  min-width: 0;
+}
+.task-row__title {
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.task-row__meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Nachrichten */
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 20px;
+}
+.msg-user {
+  align-self: flex-end;
+  max-width: 82%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 10px 14px;
+  white-space: pre-wrap;
+  user-select: text;
+}
+.msg-assistant {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: 12px;
+}
+/* Die linke Spalte trägt das Zeichen — außerhalb des Textes. Es steht unten,
+   also auf Höhe der Zeile, die gerade entsteht, und wandert mit ihr. */
+.msg-assistant__rand {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.msg-assistant__mark {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  position: sticky;
+  bottom: 8px;
+}
+.msg-fuss {
+  grid-column: 2;
+  min-width: 0;
+}
+.msg-body {
+  min-width: 0;
+  flex: 1;
+  user-select: text;
+}
+.msg-error {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 12.5px;
+}
+.thinking {
+  border-left: 2px solid var(--border-strong);
+  padding-left: 10px;
+  margin-bottom: 10px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+/* Zugeklappt: drei Zeilen, unten sanft auslaufend — zum Mitlesen. */
+.thinking--zu {
+  max-height: calc(3 * 1.55em);
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+/* Beim Mitlesen läuft das Neueste unten ein — dann oben ausblenden. */
+.denken[data-live] .thinking--zu {
+  -webkit-mask-image: linear-gradient(to top, #000 55%, transparent);
+  mask-image: linear-gradient(to top, #000 55%, transparent);
+}
+.denken__kopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 4px;
+  padding: 1px 0;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+.denken__kopf:hover { color: var(--text-muted); }
+.denken__pfeil { transition: transform 0.15s; }
+.denken[data-offen] .denken__pfeil { transform: rotate(180deg); }
+.denken[data-live] .denken__kopf span { animation: ember-glow-text 1.6s ease-in-out infinite; }
+@keyframes ember-glow-text { 50% { color: var(--text-muted); } }
+
+/* Markdown */
+.md {
+  font-size: 14.5px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.md > *:first-child {
+  margin-top: 0;
+}
+.md > *:last-child {
+  margin-bottom: 0;
+}
+.md p,
+.md ul,
+.md ol,
+.md blockquote {
+  margin: 0 0 12px;
+}
+.md h1,
+.md h2,
+.md h3 {
+  margin: 20px 0 10px;
+  line-height: 1.25;
+}
+.md a {
+  color: var(--accent);
+}
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-sunken);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
+.md pre {
+  position: relative;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  overflow-x: auto;
+  margin: 0 0 12px;
+}
+.md pre code {
+  background: none;
+  padding: 0;
+  font-size: 12.8px;
+}
+.md table {
+  border-collapse: collapse;
+  margin: 0 0 12px;
+  font-size: 13px;
+}
+.md th,
+.md td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+}
+.md blockquote {
+  border-left: 3px solid var(--border-strong);
+  padding-left: 12px;
+  color: var(--text-muted);
+}
+.copy-code {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  font-size: 11.5px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  opacity: 0;
+}
+.md pre:hover .copy-code {
+  opacity: 1;
+}
+
+/* Tool-Protokoll */
+.tool-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 3px 0;
+}
+.tool-line[data-ok='false'] {
+  color: var(--danger);
+}
+
+/* Buttons, Formulare, Modal */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  font-size: 13px;
+}
+.btn:hover {
+  border-color: var(--border-strong);
+}
+.btn[data-variant='primary'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+.btn[data-variant='ghost'] {
+  border-color: transparent;
+  background: none;
+  color: var(--text-muted);
+}
+.btn[data-variant='ghost']:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.btn[data-variant='danger'] {
+  color: var(--danger);
+  border-color: var(--border);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.field label {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.input {
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  outline: 0;
+  user-select: text;
+}
+.input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 21, 18, 0.42);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+  padding: 24px;
+}
+.modal {
+  width: min(720px, 100%);
+  max-height: min(680px, 92vh);
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 20px 22px;
+}
+.modal__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.modal__title {
+  font-size: 16px;
+  font-weight: 600;
+  flex: 1;
+}
+.search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-sunken);
+  outline: 0;
+  user-select: text;
+}
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+}
+.result-row:hover,
+.result-row[data-active='true'] {
+  background: var(--surface-hover);
+}
+.result-row__sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------- Einstellungsbereich
+   Zweispaltig: links suchen und wählen, rechts die Zeilen. Eine Zeile trägt
+   Bezeichnung und Erklärung links, das Bedienelement rechts — nie beides
+   untereinander, sonst wandert der Zusammenhang auseinander. */
+.einstellungen {
+  width: min(940px, 100%);
+  height: min(680px, 100%);
+  display: grid;
+  grid-template-columns: 258px 1fr;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.einstellungen__leiste {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 12px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-sunken);
+  min-height: 0;
+}
+.einstellungen__suche {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-faint);
+}
+.einstellungen__suche input {
+  border: none;
+  outline: none;
+  background: none;
+  width: 100%;
+  font-size: 13px;
+  color: var(--text);
+}
+.einstellungen__nav {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.einstellungen__gruppe + .einstellungen__gruppe {
+  margin-top: 14px;
+}
+.einstellungen__kopf {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 0 10px 6px;
+}
+.einstellungen__punkt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  text-align: left;
+}
+.einstellungen__punkt:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.einstellungen__punkt[data-aktiv='true'] {
+  background: var(--surface-raised);
+  color: var(--text);
+  font-weight: 600;
+}
+.einstellungen__leer {
+  padding: 10px;
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+.einstellungen__inhalt {
+  min-height: 0;
+  overflow: auto;
+  padding: 18px 26px 34px;
+}
+.einstellungen__titelzeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.einstellungen__titelzeile h2 {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 600;
+}
+.einstellungen__block {
+  padding: 16px 0 6px;
+  border-top: 1px solid var(--border);
+}
+.einstellungen__block:first-of-type {
+  border-top: none;
+}
+.einstellungen__block h3 {
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 4px;
+}
+.zeile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+.zeile:last-child {
+  border-bottom: none;
+}
+.zeile__text {
+  min-width: 0;
+}
+.zeile__titel {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.zeile__erklarung {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  max-width: 54ch;
+}
+.zeile__steuerung {
+  flex: none;
+}
+.hinweis {
+  font-size: 12px;
+  color: var(--text-faint);
+  padding: 10px 0 2px;
+}
+.wert {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tasten {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+}
+.auswahl {
+  min-width: 168px;
+  text-align: right;
+}
+.umschalter {
+  width: 40px;
+  height: 23px;
+  border-radius: 999px;
+  background: var(--border-strong);
+  position: relative;
+  transition: background 140ms ease;
+  flex: none;
+}
+.umschalter[data-an='true'] {
+  background: var(--accent);
+}
+.umschalter__knopf {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  background: #fff;
+  transition: left 140ms ease;
+}
+.umschalter[data-an='true'] .umschalter__knopf {
+  left: 19px;
+}
+.status {
+  font-size: 12.5px;
+  color: var(--warning);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.status--ok {
+  color: var(--success);
+}
+.anbieter {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin: 8px 0 12px;
+}
+.anbieter__kopf,
+.anbieter__zeile,
+.anbieter__fuss {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.anbieter__kopf {
+  margin-bottom: 8px;
+}
+.anbieter__fuss {
+  margin-top: 8px;
+}
+.anbieter__aktionen {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Das Fußmenü links unten: Konto oben, dann die Punkte. Es hängt über der
+   Leiste, nicht darunter — der Anschluss ist der Knopf, der es öffnet. */
+.fußmenue {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: calc(100% + 6px);
+  z-index: 20;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+.fußmenue__fänger {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+}
+.fußmenue__konto {
+  padding: 8px 10px 10px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fußmenue__stand {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+.fußmenue button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: var(--text);
+  text-align: left;
+}
+.fußmenue button:hover {
+  background: var(--surface-hover);
+}
+.fußmenue__kurzzeichen {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.settings-nav {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.settings-nav button {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.settings-nav button[data-active='true'] {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.row__main {
+  flex: 1;
+  min-width: 0;
+}
+.row__title {
+  font-size: 13.5px;
+}
+.row__hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.notice {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 12.5px;
+  margin-bottom: 14px;
+}
+.placeholder-page {
+  padding: 40px 8px;
+  color: var(--text-muted);
+  text-align: center;
+}
+.kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  color: var(--text-muted);
+  background: var(--surface-raised);
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+
+/* ------------------------------------------------------------ Vorschau-Panel */
+.chat-layout {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+.chat-layout__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.doc-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+  /* Dem Gespräch bleiben immer 360 Pixel — sonst ließ sich die Vorschau so
+     breit ziehen, dass das Eingabefeld auf 30 Pixel schrumpfte. Gilt auch,
+     wenn das Fenster nachträglich schmaler wird. */
+  max-width: min(1100px, calc(100% - 360px));
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+}
+.doc-panel__grip {
+  position: absolute;
+  left: -5px;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  cursor: col-resize;
+  z-index: 3;
+  /* Der Griff soll zu treffen sein, ohne sichtbar zu sein. */
+}
+.doc-panel__grip:hover {
+  background: var(--accent-soft);
+}
+.doc-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.doc-panel__names { min-width: 0; flex: 1; }
+.doc-panel__title {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-panel__path {
+  font-size: 11.5px;
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-panel__actions { display: flex; gap: 2px; }
+/* Der Körper **teilt** den Raum auf, er rollt nicht selbst. Das ist der
+   Unterschied: als rollender Block wurde der PDF-Stapel so hoch wie sein Inhalt —
+   1244 px in einem 736 px hohen Feld, und die Seitenzählerleiste landete 524 px
+   unter der Fensterunterkante, also außerhalb des Bildschirms. Jetzt übernimmt
+   der Stapel seine eigene Scrollstrecke, und die Zählerleiste bleibt zu sehen. */
+.doc-panel__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Die Textvorschauen (Markdown, Quelltext, Bild, Word, Hinweis) brauchen die
+   alte Freiheit: mitatmen und selbst rollen. */
+.doc-panel__seite {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 18px 40px;
+}
+.doc-panel__code {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.doc-panel__image {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+}
+.doc-panel__word {
+  background: var(--bg-sunken);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+}
+.doc-panel__word .docx-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.doc-panel__word .docx-wrapper > section.docx {
+  width: 100% !important;
+  min-height: auto !important;
+  padding: 20px 24px !important;
+}
+.doc-panel__word section.docx {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16) !important;
+  margin-bottom: 14px !important;
+}
+.doc-panel__notice {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.doc-panel__hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 6px;
+}
+
+/* Dokument-Karten in Antworten */
+.doc-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 2px 8px 6px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 120ms ease, background 120ms ease;
+  /* Bei offener Vorschau ist die Spalte schmal: kürzen statt seitlich rollen. */
+  max-width: 100%;
+  min-width: 0;
+}
+.doc-card:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.doc-card__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 38px;
+  flex: none;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-sunken);
+}
+.doc-card__zeilen {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.doc-card__meta {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+.doc-card__kind {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.doc-card__name {
+  font-size: 13px;
+  font-weight: 550;
+  max-width: min(260px, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-card__meta {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+/* Schwebendes Menü (Export, Auswahlen) */
+.menu {
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  padding: 4px;
+}
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.menu__item:hover {
+  background: var(--accent-soft);
+}
+
+.chat-row__edit {
+  height: 26px;
+  font-size: 13px;
+  padding: 0 8px;
+  width: 100%;
+}
+
+/* Aufklappmenü am unteren Rand: klappt nach oben auf, damit es nie an der
+   Fensterunterkante abgeschnitten wird (Der Composer sitzt immer unten.) */
+.composer-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  min-width: 240px;
+  max-height: min(60vh, 380px);
+  overflow-y: auto;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  z-index: 60;
+}
+
+/* Durchsatzzeile unter der Antwort */
+.msg-metrics {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.msg-metrics svg {
+  opacity: 0.75;
+}
+.msg-metrics__estimated {
+  opacity: 0.8;
+}
+.msg-metrics__detail {
+  opacity: 0.7;
+}
+.msg-metrics__detail::before {
+  content: '·';
+  margin-right: 6px;
+}
+
+/* Lebendes Zeichen: die Flamme flackert, solange das Modell arbeitet —
+   vom Absenden über das Warten auf das erste Wort bis zum Ende. Sie wächst
+   aus ihrem Fuß in der Schale, nicht aus der Mitte; die Schale steht still. */
+.logo-mark__ember,
+.logo-mark__kern {
+  transform-box: view-box;
+  transform-origin: 16px 18.4px;
+}
+
+.logo-mark--active .logo-mark__ember {
+  animation: ember-breathe 1.3s ease-in-out infinite;
+}
+.logo-mark--active .logo-mark__kern {
+  animation: glut-kern 0.9s ease-in-out infinite;
+}
+
+/* Flackern: höher und schmaler, leicht zur Seite, mit Glut drumherum. */
+@keyframes ember-breathe {
+  0%,
+  100% {
+    transform: scale(1, 1) skewX(0deg);
+    opacity: 0.85;
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  25% {
+    transform: scale(0.96, 1.1) skewX(-3deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 3px var(--accent));
+  }
+  55% {
+    transform: scale(1.03, 0.95) skewX(2deg);
+    opacity: 0.9;
+    filter: drop-shadow(0 0 2px var(--accent));
+  }
+  75% {
+    transform: scale(0.97, 1.13) skewX(-1.5deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 5px var(--accent));
+  }
+}
+
+/* Der Kern züngelt schneller und gegenläufig — das macht die Flamme lebendig. */
+@keyframes glut-kern {
+  0%,
+  100% {
+    transform: scale(1, 1);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(0.9, 1.22);
+    opacity: 0.75;
+  }
+  70% {
+    transform: scale(1.06, 0.9);
+    opacity: 0.95;
+  }
+}
+
+/* Ruhetempo über der Begrüßung: kaum Bewegung, leichtes Glimmen. */
+@keyframes flamme-ruhe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1, 1.05);
+    opacity: 1;
+  }
+}
+
+/* Wer Bewegung ausschaltet, bekommt ein ruhiges Leuchten statt Geruche. */
+@media (prefers-reduced-motion: reduce) {
+  .logo-mark--active .logo-mark__ember {
+    animation: ember-glow 2.4s ease-in-out infinite;
+  }
+  .logo-mark--active .logo-mark__kern {
+    animation: none;
+  }
+  .home__logo .logo-mark__ember {
+    animation: ember-glow 6s ease-in-out infinite;
+  }
+  @keyframes ember-glow {
+    0%,
+    100% {
+      filter: none;
+    }
+    50% {
+      filter: drop-shadow(0 0 6px var(--accent));
+    }
+  }
+}
+
+/* Zugriffsstufe im Eingabebereich */
+.permission-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.permission-trigger:hover {
+  color: var(--text);
+  border-color: var(--border-strong, var(--border));
+}
+.permission-trigger[data-level='autoWrites'] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.permission-trigger[data-level='everything'] {
+  color: #b4531a;
+  border-color: color-mix(in srgb, #b4531a 45%, var(--border));
+}
+.composer-menu--wide {
+  width: 302px;
+  max-width: 82vw;
+}
+/* Karten für die Ansichten, die für sich stehen (Mobile, Geplant) */
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+/* Geplante Aufträge */
+.planned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.planned-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.planned-item[data-paused='true'] {
+  opacity: 0.62;
+}
+.planned-item__main {
+  flex: 1;
+  min-width: 0;
+}
+.planned-item__title {
+  font-size: 14px;
+  font-weight: 550;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.planned-item__prompt {
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.planned-item__meta {
+  margin-top: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.planned-item__error {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #b4531a;
+}
+.planned-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* Was fehlt, bevor abgeschickt werden kann */
+.composer__blocked {
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #b4531a 10%, transparent);
+  color: #b4531a;
+  font-size: 12.5px;
+}
+/* ------------------------------------------------------------- Zeitlinie der Werkzeugschritte */
+.timeline {
+  margin: 2px 0 10px;
+}
+.timeline__summary {
+  color: var(--text-faint);
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+.timeline__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 4px;
+}
+.timeline__step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0 3px 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+/* Die Linie zwischen den Schritten: ein Strich pro Zeile, lückenlos gestapelt. */
+.timeline__step::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--border);
+}
+.timeline__step:first-child::before {
+  top: 50%;
+}
+.timeline__step:last-child::before {
+  bottom: 50%;
+}
+.timeline__dot {
+  position: absolute;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+}
+/* Erledigt bleibt leise: die Farbe gehört dem Fehler, nicht jedem glücklichen
+   Schritt. Sonst liest sich eine gelungene Antwort wie eine Liste von Störungen. */
+.timeline__step[data-status='done'] .timeline__dot {
+  background: var(--text-faint);
+  border-color: var(--text-faint);
+  opacity: 0.55;
+}
+.timeline__step[data-status='error'] .timeline__dot {
+  background: #b4531a;
+  border-color: #b4531a;
+}
+.timeline__step[data-status='pending'] .timeline__dot {
+  animation: ember-breathe 1.5s ease-in-out infinite;
+  border-color: var(--accent);
+}
+.timeline__phrase {
+  white-space: nowrap;
+}
+.timeline__detail {
+  color: var(--text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+}
+.timeline__running {
+  color: var(--text-faint);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.timeline__flag {
+  color: #b4531a;
+  font-size: 12px;
+}
+.timeline__toggle {
+  margin-top: 2px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-decoration: underline dotted;
+}
+.timeline__raw {
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-sunken);
+  display: grid;
+  gap: 6px;
+}
+.timeline__raw-step code {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.timeline__raw-step pre {
+  margin: 4px 0 0;
+  max-height: 180px;
+  overflow: auto;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.timeline__text + .timeline__text {
+  margin-top: 8px;
+}
+
+/* ------------------------------------------------------------- Blattstapel (PDF) */
+.pdf-stack-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+.pdf-stack {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 18px 28px;
+  background: var(--bg-sunken);
+}
+/* Jedes Blatt für sich: hell, sauber gerändert, mit weichem FallSchatten. */
+.pdf-page {
+  width: min(100%, 820px);
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%), 0 8px 24px rgb(0 0 0 / 10%);
+}
+.pdf-count {
+  padding: 6px 12px;
+  color: var(--text-faint);
+  font-size: 12px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+/* Voll ausgebreitet: die Vorschau schiebt den Chat zur Seite, ohne ihn zu verdrängen. */
+.doc-panel--wide {
+  width: auto !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Während die Vorschau breit gezogen wird: Ruhigstellen, was stören würde. */
+body.is-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+body.is-resizing .doc-panel__grip {
+  background: var(--accent);
+  opacity: 0.5;
+}
+.pdf-sheet {
+  position: relative;
+  width: min(100%, 820px);
+}
+.pdf-sheet .pdf-page {
+  width: 100%;
+}
+.pdf-sheet__badge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgb(17 17 19 / 72%);
+  color: #fff;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+
+/* ---------------------------------------------------------------------------
+   Paneele: gemeinsamen Kopf für Projekte, Artifacts und Geplant
+   ------------------------------------------------------------------------ */
+.pane--wide {
+  max-width: 1080px;
+}
+.pane__head {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-bottom: 18px;
+}
+/* Der Überschrift gehört der Platz, nicht den Werkzeugen: sonst steht der
+   Untertitel ein Wort pro Zeile da. */
+.pane__heading {
+  flex: 1 1 300px;
+  min-width: 300px;
+}
+.pane__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 25px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.pane__subtitle {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+.pane__tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 auto;
+  margin-left: auto;
+}
+.pane__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-faint);
+}
+.pane__search input {
+  border: 0;
+  background: none;
+  outline: none;
+  font: inherit;
+  font-size: 13px;
+  width: 150px;
+  color: var(--text);
+}
+.pane__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text-faint);
+}
+.pane__sort select {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+.pane__lead {
+  margin: 0 0 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+/* Getrennte Linie mit welligem Verlauf, wie im Vorbild angedeutet. */
+.pane__wave {
+  border: 0;
+  border-top: 1px dashed var(--border);
+  margin: 34px 0 26px;
+}
+
+/* Hinweiskarte, die sich wegklappen lässt. */
+.note {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 22px;
+}
+.note__badge {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+}
+.note__text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  max-width: 78ch;
+}
+.note__close {
+  border: 0;
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* Leerer Zustand mit gezeichneter Stoppuhr. */
+.planned-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 44px 0 8px;
+}
+.planned-empty__mark svg {
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+.planned-empty__mark circle {
+  fill: var(--surface);
+}
+.planned-empty__text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+/* Vorschlagskarten in zwei Spalten. */
+.suggestions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 10px 28px;
+}
+.suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.suggestion:hover {
+  border-color: var(--border);
+  background: var(--surface);
+}
+.suggestion__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+}
+.suggestion__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.suggestion__title {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.suggestion__text {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.suggestion__when {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+
+/* Projekt- und Artefakt-Karten. */
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+.project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 158px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
+}
+.project-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 2px 10px rgb(32 29 25 / 5%);
+}
+.project-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.project-card__name {
+  flex: 1;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.project-card__pin {
+  flex: none;
+  padding: 3px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-faint);
+  opacity: 0;
+  cursor: pointer;
+}
+.project-card:hover .project-card__pin,
+.project-card__pin[data-on='true'] {
+  opacity: 1;
+}
+.project-card__pin[data-on='true'] {
+  color: var(--accent);
+}
+.project-card__text {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.project-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.project-card__remove {
+  margin-left: auto;
+  padding: 3px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-faint);
+  opacity: 0;
+  cursor: pointer;
+}
+.project-card:hover .project-card__remove {
+  opacity: 1;
+}
+.project-card__remove:hover {
+  color: var(--danger);
+}
+
+
+/* ---------------------------------------------------------------------------
+   Versenden: gebührende Bühne statt Formular
+   ------------------------------------------------------------------------ */
+.pane--dispatch {
+  max-width: 720px;
+  padding-bottom: 48px;
+}
+.dispatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.dispatch__stage {
+  display: grid;
+  place-items: center;
+  padding: 6px 0 26px;
+}
+.dispatch__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.dispatch__subline {
+  margin: 10px 0 22px;
+  max-width: 46ch;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+/* Der Knopf ist dunkel und rund wie eine Tür, nicht wie ein Formularfeld. */
+.dispatch__button {
+  min-width: 226px;
+  height: 44px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 999px;
+  background: #1c1a17;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dispatch__button:hover:not(:disabled) {
+  background: #000;
+}
+.dispatch__button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.dispatch__fine {
+  margin: 18px 0 0;
+  max-width: 62ch;
+  color: var(--text-faint);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.dispatch__fine--card {
+  margin: 20px 0 0;
+  text-align: left;
+}
+.dispatch__error {
+  margin: 18px 0 0;
+  color: var(--danger);
+  font-size: 12.5px;
+  text-align: center;
+}
+.dispatch__details {
+  width: 100%;
+  margin-top: 30px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dispatch__state {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+}
+.dispatch__led {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--text-faint);
+}
+.dispatch__led--on {
+  background: var(--success);
+}
+.dispatch__clients {
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.dispatch__qr {
+  display: grid;
+  place-items: center;
+  padding: 6px 0;
+}
+.dispatch__qr img {
+  width: 216px;
+  height: 216px;
+  border-radius: var(--radius-md);
+  background: #fffdf9;
+  padding: 8px;
+  border: 1px solid var(--border);
+}
+.dispatch__label {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.dispatch__address {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.dispatch__address code {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dispatch__others-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+/* Das gezeichnete Telefon. */
+.phone__case {
+  fill: #efece5;
+  stroke: var(--border-strong);
+  stroke-width: 1.5;
+}
+.phone__screen {
+  fill: #fffdf9;
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.phone__notch {
+  fill: #e3ded3;
+}
+.phone__title {
+  font-size: 17px;
+  font-weight: 600;
+  fill: var(--text);
+}
+.phone__pill {
+  fill: var(--surface-hover);
+  stroke: var(--border);
+}
+.phone__pill--on {
+  fill: #e6f2ea;
+  stroke: #bcdcc8;
+}
+.phone__pill-text {
+  font-size: 9px;
+  fill: var(--text-faint);
+}
+.phone__led {
+  fill: var(--text-faint);
+}
+.phone__led--on {
+  fill: var(--success);
+}
+.phone__bubble {
+  fill: var(--surface-hover);
+  stroke: var(--border);
+}
+.phone__bubble--mine {
+  fill: #f6e3d6;
+  stroke: #e6c6b1;
+}
+.phone__line {
+  fill: #d8d1c4;
+}
+.phone__line--dim {
+  fill: #ddd7cb;
+}
+.phone__field {
+  fill: #fff;
+  stroke: var(--border);
+}
+.phone__caret {
+  stroke: var(--text-faint);
+  stroke-width: 1.5;
+}
+.phone__send {
+  fill: var(--accent);
+}
+.phone__arrow {
+  stroke: #fff;
+  stroke-width: 1.6;
+  fill: none;
+  stroke-linecap: round;
+}
+.phone__grid line {
+  stroke: var(--border);
+  stroke-width: 0.8;
+  opacity: 0.55;
+}
+
+/* Artifacts: Liste nach Tagen und Raster als zweite Ansicht. */
+.artifact-group {
+  margin-bottom: 22px;
+}
+.artifact-group__day {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+.artifact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px 6px 2px;
+  border-radius: 10px;
+}
+.artifact-row:hover {
+  background: var(--surface-hover);
+}
+.artifact-row__open {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.artifact-row__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+}
+.artifact-row__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artifact-row__seen {
+  flex: none;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+.artifact-row__more {
+  flex: none;
+  padding: 4px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--text-faint);
+  opacity: 0;
+  cursor: pointer;
+}
+.artifact-row:hover .artifact-row__more {
+  opacity: 1;
+}
+.artifact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+.artifact-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 12px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+.artifact-tile__marks {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.artifact-tile__title {
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.artifact-tile__time {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+/* Zwei Geräte nebeneinander: das Handy vorn, der Rechner daneben. */
+.dispatch__stage { display: flex; align-items: flex-end; justify-content: center; gap: 30px; flex-wrap: wrap }
+.dispatch__fine--zweit { margin-top: 4px; max-width: 52ch }
+.rechner { max-width: 100%; height: auto }
+
+/* Die Denkstufe bleibt über der Modelleliste sichtbar — die Liste ist lang. */
+.denkstufe {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--surface-raised);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -8px 14px -14px rgba(0, 0, 0, 0.5);
+}
+.denkstufe__hinweis {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--surface-raised);
+}
+
+/* Das Diktat im Eingabefeld. */
+.icon-btn--rec { color: var(--accent); }
+.icon-btn--rec::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  animation: diktat-puls 1.4s ease-in-out infinite;
+}
+.icon-btn { position: relative; }
+@keyframes diktat-puls { 0%, 100% { opacity: .35; } 50% { opacity: .9; } }
+/* Die Rückmeldung liegt über dem Feld, sie verdrängt nichts im Satz. */
+.diktat-meldung {
+  position: absolute;
+  right: 14px;
+  bottom: calc(100% + 6px);
+  z-index: 30;
+  max-width: 60%;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  padding: 6px 9px;
+}
+
+/* Der Schiftgrößenregler. */
+.schriftstufe { display: flex; align-items: center; gap: 12px }
+.schriftstufe input[type='range'] { width: 180px; accent-color: var(--accent) }
+.schriftstufe__wert { font-variant-numeric: tabular-nums; color: var(--text-muted); min-width: 46px }
+
+/* Die Denkstufe läßt sich am Ort ihrer Anzeige umschalten. */
+.pill__note--schaltbar { text-decoration: underline dotted; text-underline-offset: 3px; cursor: pointer; }
+.pill__note--schaltbar:hover { opacity: 1 !important; color: var(--accent); }
+
+/* „Anpassen" ist der Weg in die Einrichtung, keine leere Seite. */
+/* Anpassen → Skills: Liste im Aufbau der Vorlage. */
+.skills__kopf { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px }
+.skills__titel { margin: 0; font-size: 19px }
+.skills__zahl {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--surface-hover);
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-weight: 500;
+}
+.skills__suche { position: relative; flex: 1; min-width: 160px; max-width: 320px; margin-left: auto }
+.skills__suche svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-faint) }
+.skills__suche .input { padding-left: 28px; width: 100% }
+.skills__erklaerung { color: var(--text-muted); font-size: 13px; line-height: 1.5; margin: 0 0 16px; max-width: 640px }
+.skills__gruppe { font-size: 14px; font-weight: 600; margin: 8px 0 6px; display: flex; align-items: center; gap: 8px }
+.skills__leer { color: var(--text-faint); font-size: 13px; padding: 14px 0 }
+.skills__liste { list-style: none; margin: 0; padding: 0 }
+.skills__zeile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.skills__zeile[data-aus] .skills__name,
+.skills__zeile[data-aus] .skills__beschreibung { opacity: 0.6 }
+.skills__symbol {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+.skills__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; color: inherit }
+.skills__name { font-weight: 500; font-size: 14px; display: flex; align-items: center; gap: 8px }
+.skills__beschreibung { font-size: 12.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.skills__marke { font-size: 11px; font-weight: 400; color: var(--text-muted); background: var(--surface-hover); border-radius: 4px; padding: 1px 6px }
+.skills__datum { font-size: 12px; color: var(--text-faint); white-space: nowrap; flex: none }
+.skills__menue {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  min-width: 250px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 5px;
+}
+.skills__menue--rechts { left: auto; right: 0; min-width: 190px }
+/* „Hinzufügen“ sitzt am rechten Ende der Kopfzeile: das Menü schließt rechts
+   mit dem Knopf ab — nach links ausgerichtet ragte es bei 1280 px hinaus. */
+.skills__kopf .skills__menue { left: auto; right: 0; }
+.skills__menue button {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: 13px;
+  color: var(--text);
+}
+.skills__menue button:hover { background: var(--surface-hover) }
+.skills__menue button svg { margin-top: 2px; flex: none }
+.skills__menue button[data-gefahr] { color: var(--warning) }
+.skills__menue span { display: flex; flex-direction: column; gap: 1px }
+.skills__menue small { color: var(--text-muted); font-size: 11.5px }
+.skills__editor { width: min(640px, 100%); max-height: calc(100vh - 60px); overflow: auto }
+.skills__anleitung { font-family: var(--font-mono); font-size: 12.5px; line-height: 1.55; resize: vertical; min-height: 160px }
+.skills__hilfe { color: var(--text-faint); font-size: 11.5px }
+
+/* Die Stufenliste an der Anzeige neben der Modellauswahl. */
+.stufenliste {
+  position: absolute;
+  z-index: 71;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+.stufenliste[data-seite='rechts'] { left: calc(100% + 6px); }
+.stufenliste[data-seite='links'] { right: calc(100% + 6px); }
+.stufenliste__grund { font-size: 12px; line-height: 1.45; color: var(--text-muted); margin: 4px 8px 6px; }
+.stufenliste__punkt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  color: var(--text);
+  font-size: 13.5px;
+}
+.stufenliste__punkt:hover { background: var(--surface-hover); }
+.stufenliste__name { flex: none; }
+.stufenliste__marke { font-size: 11px; color: var(--text-muted); background: var(--surface-hover); border-radius: 4px; padding: 1px 6px; }
+.stufenliste__hak { margin-left: auto; width: 15px; color: var(--accent); display: grid; place-items: center; }
+.stufenliste__zurueck { width: 100%; margin-top: 4px; padding: 6px 8px; border-top: 1px solid var(--border); text-align: left; font-size: 12px; color: var(--text-muted); }
+.stufenliste__zurueck:hover { color: var(--text); }
+.stufenliste--modelle { display: flex; flex-direction: column; max-height: 420px; }
+
+/* Das Modellmenü im Eingabefeld — Aufbau wie in der Vorlage. */
+.modellmenue {
+  position: absolute;
+  right: 0;
+  z-index: 60;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+.modellmenue[data-richtung='oben'] { bottom: calc(100% + 8px); }
+.modellmenue[data-richtung='unten'] { top: calc(100% + 8px); }
+.modellmenue__modell,
+.modellmenue__zeile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  color: var(--text);
+}
+.modellmenue__modell:hover,
+.modellmenue__zeile:hover,
+.modellmenue__zeile[data-offen] { background: var(--surface-hover); }
+.modellmenue__modell--klein { padding: 5px 10px; }
+.modellmenue__zeilen { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.modellmenue__name { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modellmenue__zeile .modellmenue__name { flex: 1; }
+.modellmenue__beschreibung { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modellmenue__wert { font-size: 12.5px; color: var(--text-muted); }
+.modellmenue__hak { color: var(--accent); flex: none; }
+.modellmenue__trenner { height: 1px; background: var(--border); margin: 5px 4px; }
+.modellmenue__leer { padding: 10px; color: var(--text-muted); font-size: 13px; }
+.modellmenue__suche { position: relative; margin: 2px 2px 6px; }
+.modellmenue__suche svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text-faint); }
+.modellmenue__suche .input { width: 100%; padding-left: 27px; }
+.modellmenue__alle { overflow-y: auto; min-height: 0; }
+.modellmenue__gruppe { padding: 8px 10px 3px; font-size: 11px; color: var(--text-faint); }
+
+/* Der letzte Fänger: abgefangene Fehler, die sonst nirgends ankämen. */
+.fehlerbruecke {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 120;
+  max-width: 420px;
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--surface-raised);
+  border: 1px solid var(--danger, var(--border));
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 10px 34px 10px 12px;
+}
+.fehlerbruecke__zeile { margin: 0; font-size: 13px; line-height: 1.45; color: var(--text); overflow-wrap: anywhere }
+.fehlerbruecke__zu { position: absolute; top: 6px; right: 6px; border: 0; background: none; color: var(--text-muted); font-size: 13px; cursor: pointer; padding: 3px 6px; border-radius: var(--radius-sm) }
+.fehlerbruecke__zu:hover { background: var(--surface-hover); color: var(--text) }
+
+/* Eingabebereich unter einem Gespräch. */
+.chat-fuss { padding: 8px 28px 18px; display: flex; justify-content: center; }
+
+/* Hintergrund hinter der aufgeklappten Leiste — nur auf dem Handy sichtbar. */
+.schublade-grund { display: none; }
+
+/* ------------------------------------------------------------------ Handy
+   Dieselbe App, fürs Smartphone umgebrochen: die Leiste wird zur Schublade,
+   Vorschau, Dialoge und Menüs nehmen den ganzen Bildschirm, die Abstände
+   werden knapp. Am Rechner und auf dem MacBook greift nichts davon. */
+@media (max-width: 760px) {
+  .app-shell,
+  .app-shell[data-sidebar='closed'] { grid-template-columns: 0 1fr; }
+  .main { grid-column: 2; }
+  .app-shell .sidebar {
+    position: fixed;
+    top: var(--titlebar-height);
+    bottom: 0;
+    left: 0;
+    width: min(300px, 86vw);
+    z-index: 45;
+    box-shadow: var(--shadow-lg);
+  }
+  .app-shell[data-sidebar='open'] .schublade-grund {
+    display: block;
+    position: fixed;
+    inset: var(--titlebar-height) 0 0 0;
+    background: rgba(24, 21, 18, 0.42);
+    z-index: 44;
+  }
+
+  .titlebar { padding: 0 6px; }
+  .pane { padding: 16px 14px 10px; }
+  .home { padding: 20px 12px 8px; }
+  .home__greeting { font-size: 26px; }
+  .chat-fuss { padding: 6px 8px 10px; }
+  .msg-user { max-width: 92%; }
+  /* 16 px verhindert, dass Safari beim Tippen ins Feld hineinzoomt. */
+  .composer textarea,
+  .input { font-size: 16px; }
+
+  /* Vorschau über dem Gespräch statt daneben. */
+  .doc-panel {
+    position: fixed;
+    inset: var(--titlebar-height) 0 0 0;
+    width: auto !important;
+    min-width: 0;
+    max-width: none;
+    z-index: 46;
+  }
+  .doc-panel__grip { display: none; }
+
+  /* Dialoge im Vollbild — und über der Schublade, aus der sie geöffnet wurden. */
+  .overlay { padding: 0; z-index: 50; }
+  .modal,
+  .einstellungen {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    border: 0;
+  }
+  /* minmax(0, …): eine 1fr-Spalte ist mindestens so breit wie ihr Inhalt —
+     die Reiterreihe ohne Umbruch zog sie auf 830 px, das Überstehende wurde
+     abgeschnitten, und beim Tippen rutschte der Inhalt seitlich weg. */
+  .einstellungen { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .einstellungen__leiste,
+  .einstellungen__inhalt { min-width: 0; }
+  .einstellungen__leiste { border-right: 0; border-bottom: 1px solid var(--border); padding: 10px; max-height: 38vh; overflow-y: auto; }
+  .einstellungen__inhalt { padding: 14px 14px 30px; }
+  .zeile { flex-direction: column; align-items: stretch; gap: 8px; }
+
+  /* Menüs als Blatt von unten. */
+  /* bottom mit !important: sonst gewinnt `.modellmenue[data-richtung='oben']`
+     (bottom: 100% + 8px) — das Blatt stand dann oberhalb des Bildschirms,
+     und im Gespräch war gar kein Modell wählbar. */
+  .modellmenue {
+    position: fixed !important;
+    left: 8px;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+    top: auto !important;
+    width: auto !important;
+    max-height: 72vh;
+    overflow-y: auto;
+  }
+  /* Aufwand und „Weitere Modelle“ klappen im Blatt an Ort und Stelle auf.
+     Früher lagen sie als zweites Blatt genau über dem ersten — das Menü
+     verschwand, und zurück ging es nur über Schließen. */
+  .modellmenue { box-shadow: 0 0 0 100vmax rgba(24, 21, 18, 0.42); }
+  .modellmenue .stufenliste {
+    position: static !important;
+    width: auto !important;
+    max-height: none;
+    margin: 2px 0 4px;
+    padding: 4px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    box-shadow: none;
+    background: var(--bg-sunken);
+  }
+  .modellmenue__modell,
+  .modellmenue__zeile,
+  .stufenliste__punkt { min-height: 44px; }
+
+  /* Die Leiste unter dem Eingabefeld hat zwei Reihen: oben Plus, Modus,
+     Mikrofon und Senden, darunter die Modellwahl (und im Agent-Modus die
+     Freigabe). In einer Reihe wurde der Modellname auf null zusammengedrückt
+     — übrig blieb ein leerer Knopf, der nur noch den Aufwand öffnete. */
+  .composer__bar { gap: 6px; flex-wrap: wrap; row-gap: 0; }
+  .composer__bar::after { content: ''; order: 5; flex-basis: 100%; height: 0; }
+  .modellwahl { order: 10; flex: 1 1 0; min-width: 0; margin-top: 8px; }
+  .freigabewahl { order: 11; margin-top: 8px; }
+  .modellwahl .pill { width: 100%; max-width: none; min-height: 36px; }
+  .modellwahl .pill__text { flex: 1; min-width: 0; text-align: left; }
+  .composer__bar .icon-btn,
+  .composer__bar .send { width: 36px; height: 36px; }
+  .segmented button { padding: 3px 10px; }
+  .skills__kopf { gap: 8px; }
+  .skills__suche { max-width: none; order: 3; flex-basis: 100%; margin-left: 0; }
+  .skills__datum { display: none; }
+}
+
+/* Als App vom Home-Bildschirm (ohne Browserleisten): den Home-Balken unten
+   und die Notch oben freihalten. */
+@media (display-mode: standalone) {
+  .app-shell { padding-top: env(safe-area-inset-top); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); box-sizing: border-box; }
+  .chat-fuss, .home { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
+  .titlebar { -webkit-user-select: none; user-select: none; }
+}
+.dispatch__sicher { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+.dispatch__sicher-qr { display: block; border-radius: 10px; background: #fffdf9; padding: 6px; margin: 0 0 10px; }
+
+/* Einstellungen → Modelle im Eingabefeld: alle Modelle mit Häkchen. */
+.modellwahl-liste { display: flex; flex-direction: column; gap: 8px; }
+.modellwahl-liste__alle { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 4px; }
+.modellwahl-liste__gruppe { padding: 8px 8px 3px; font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; }
+.modellwahl-liste__eintrag { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13.5px; }
+.modellwahl-liste__eintrag:hover { background: var(--surface-hover); }
+.modellwahl-liste__eintrag[data-an] { color: var(--text); }
+.modellwahl-liste__eintrag[data-aus] { opacity: .45; cursor: not-allowed; }
+.modellwahl-liste__eintrag input { accent-color: var(--accent); width: 16px; height: 16px; }
+.modellwahl-liste__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modellwahl-liste__art { font-size: 11.5px; color: var(--text-faint); white-space: nowrap; }
+.zahl[data-voll] { color: var(--accent); }
+
+/* Leisten, die am Handy umbrechen dürfen — am Rechner stehen sie wie bisher
+   in einer Reihe. */
+.artifacts__kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.artifacts__suche { position: relative; }
+.artifacts__suche .input { width: 190px; }
+.werkzeugzeile { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+.formzeile { display: flex; gap: 10px; }
+.msg-aktionen { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+/* Bei offener Vorschau wird die Spalte schmal: umbrechen statt abschneiden. */
+.msg-aktionen .btn { white-space: nowrap; }
+
+/* Auf dem Touchschirm gibt es kein Darüberfahren: was sonst erst beim Hover
+   auftaucht, steht dort immer da — sonst ist es schlicht unerreichbar. */
+@media (hover: none) {
+  .chat-row__actions { display: inline-flex; }
+  .chat-row__meta { display: none; }
+  .md pre .copy-code,
+  .project-card__pin,
+  .project-card__remove,
+  .artifact-row__more { opacity: 1; }
+  /* Fingergroße Trefferflächen — das Symbol bleibt klein, die Fläche nicht. */
+  .chat-row__actions .icon-btn,
+  .sidebar__section .icon-btn,
+  .project-card__pin,
+  .project-card__remove,
+  .artifact-row__more { min-width: 36px; min-height: 36px; }
+  .chat-row__actions { gap: 0; }
+}
+
+/* ------------------------------------------------------------ Handy, Teil 2
+   Was bei 390 px über den Rand ragte oder in der Kachel umbrach. */
+@media (max-width: 760px) {
+  /* Knöpfe brechen nicht mitten im Wort um; die Leisten brechen als Ganzes. */
+  .btn { white-space: nowrap; }
+  .input { min-width: 0; max-width: 100%; }
+
+  /* Mehrstufige Umschalter: passt die Reihe nicht, wird sie wischbar,
+     statt über den Rand zu ragen. */
+  .segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .segmented::-webkit-scrollbar { display: none; }
+  .segmented button { flex: none; min-height: 32px; }
+
+  .agent-strip { flex-wrap: wrap; }
+
+  /* Seitenköpfe (Geplant u. a.): Überschrift oben, Werkzeuge darunter. */
+  .pane__heading { flex-basis: 100%; min-width: 0; }
+  .pane__tools { flex-wrap: wrap; width: 100%; margin-left: 0; }
+  .pane__search { flex: 1 1 100%; }
+  .pane__search input { flex: 1; width: auto; min-width: 0; }
+  .pane__sort { flex: 1 1 auto; min-width: 0; white-space: nowrap; }
+  .pane__sort select { flex: 1; min-width: 0; }
+  .formzeile { flex-direction: column; gap: 0; }
+  /* In Formularen bricht eine lange Stufenreihe um, statt sich zu verstecken. */
+  .field > .segmented { align-self: flex-start; flex-wrap: wrap; overflow: visible; border-radius: var(--radius-md); }
+  .suggestions { grid-template-columns: minmax(0, 1fr); }
+  .suggestion { min-width: 0; }
+  .skills__kopf .skills__menue {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    box-shadow: 0 0 0 100vmax rgba(24, 21, 18, 0.42);
+  }
+  .skills__menue button { min-height: 44px; }
+
+  /* Artifacts: Suche in eigener Zeile, Titel bekommen den Platz. */
+  .artifacts__kopf { flex-wrap: wrap; gap: 10px; }
+  .artifacts__suche { order: 5; flex: 1 1 100%; }
+  .artifacts__suche .input { width: 100%; }
+  .artifact-row__seen { display: none; }
+  .werkzeugzeile { flex-wrap: wrap; }
+
+  /* Gespräch: Knöpfe unter der Antwort und die Durchsatzzeile. */
+  .msg-aktionen { flex-wrap: wrap; }
+  .msg-metrics__detail { flex-basis: 100%; }
+  .msg-metrics__detail::before { content: none; }
+
+  /* Einstellungen: statt einer halbhohen Liste über dem Inhalt eine
+     wischbare Reihe — der Inhalt bekommt den Schirm. */
+  .einstellungen__leiste { max-height: none; overflow: visible; padding: 10px 10px 8px; gap: 8px; }
+  .einstellungen__nav { flex: none; flex-direction: row; overflow-x: auto; overflow-y: hidden; gap: 6px; scrollbar-width: none; }
+  .einstellungen__nav::-webkit-scrollbar { display: none; }
+  .einstellungen__gruppe { display: contents; }
+  .einstellungen__kopf { display: none; }
+  .einstellungen__punkt { width: auto; flex: none; white-space: nowrap; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 7px 12px; }
+  .anbieter__kopf,
+  .anbieter__zeile,
+  .anbieter__fuss { flex-wrap: wrap; }
+  .anbieter__kopf > .input:first-child,
+  .anbieter__zeile > .input { flex: 1 1 100% !important; width: auto !important; }
+
+  .modal { padding: 16px 14px; }
+  .planned-form { padding-left: 0 !important; padding-right: 0 !important; }
+
+  /* Was die zu breite Einstellungsspalte bisher verdeckt hat. */
+  .schriftstufe { flex-wrap: wrap; }
+  .schriftstufe input[type='range'] { flex: 1 1 140px; width: auto; min-width: 0; }
+  .anbieter__aktionen { flex-wrap: wrap; }
+  .project-grid { grid-template-columns: minmax(0, 1fr); }
+
+  /* Greifbare Ziele */
+  .sidebar .icon-btn { width: 32px; height: 32px; }
+  .note__close { min-width: 32px; min-height: 32px; }
+}
+
+/* ------------------------------------------------------------ Projektseite
+   Links Eingabefeld und Chats, rechts die Karten
+   Anweisungen, Erinnerungen, Kontext, Ordner, Geplant. */
+.projektseite__pfad { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); margin-bottom: 10px; min-width: 0; }
+.projektseite__pfad button { color: var(--text-muted); padding: 2px 0; }
+.projektseite__pfad button:hover { color: var(--text); text-decoration: underline; }
+.projektseite__pfadname { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projektseite__kopf { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.projektseite__titel { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.projektseite__namensfeld { flex: 1; min-width: 200px; font-size: 20px; }
+.projektseite__aktionen { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.projektseite__frage { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--text-muted); max-width: 520px; }
+.projektseite__raster { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+.projektseite__haupt { min-width: 0; }
+.projektseite__abschnitt { font-size: 13px; font-weight: 500; color: var(--text-muted); margin: 26px 0 6px; }
+.projektseite__leer { color: var(--text-faint); font-size: 13px; line-height: 1.5; }
+.projektchats { list-style: none; margin: 0; padding: 0; }
+.projektchats li + li { border-top: 1px solid var(--border); }
+.projektchats__zeile { display: flex; align-items: baseline; gap: 12px; width: 100%; padding: 11px 4px; text-align: left; color: var(--text); }
+.projektchats__zeile:hover { background: var(--surface-hover); }
+.projektchats__titel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
+.projektchats__zeit { flex: none; font-size: 12.5px; color: var(--text-faint); }
+
+.projektseite__leiste { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+.projektkarte { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 18px; min-width: 0; }
+.projektkarte + .projektkarte { border-top: 1px solid var(--border); }
+.projektkarte > * { max-width: 100%; }
+.projektkarte__kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
+.projektkarte__titel { margin: 0; font-size: 14px; font-weight: 600; }
+.projektkarte__hinweis { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+.projektkarte__leer { margin: 0; font-size: 12.5px; color: var(--text-faint); }
+.projektkarte__text { margin: 0; font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; cursor: text; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.projektkarte .erinnerung-form,
+.projektkarte .erinnerungen { width: 100%; }
+
+.kontextleiste { width: 100%; height: 6px; border-radius: 999px; background: var(--bg-sunken); overflow: hidden; }
+.kontextleiste span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.kontextstand { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; width: 100%; font-size: 12px; color: var(--text-muted); }
+.kontextstand__modus { color: var(--text-faint); }
+.kontextstand__modus[data-suche] { color: var(--accent); }
+.kontextdateien { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+.kontextdateien:empty { display: none; }
+.kontextdatei { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; min-height: 86px; padding: 10px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-raised); color: var(--text-muted); }
+.kontextdatei[data-liest] { opacity: 0.6; }
+.kontextdatei__name { font-size: 12.5px; color: var(--text); line-height: 1.35; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.kontextdatei__art { margin-top: auto; align-self: flex-start; font-size: 10.5px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); }
+.kontextdatei__weg { position: absolute; top: 4px; right: 4px; opacity: 0; }
+.kontextdatei:hover .kontextdatei__weg,
+.kontextdatei__weg:focus-visible { opacity: 1; }
+
+.projektordner { display: flex; align-items: center; gap: 8px; width: 100%; font-size: 12.5px; color: var(--text-muted); }
+.projektordner__pfad { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+.projektplan { list-style: none; margin: 0; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.projektplan__zeile { display: flex; align-items: center; gap: 8px; font-size: 13px; min-width: 0; }
+.projektplan__zeile[data-aus] { opacity: 0.5; }
+.projektplan__titel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projektplan__wann { flex: none; font-size: 12px; color: var(--text-faint); }
+
+/* ---------------------------------------------------------- Erinnerungen */
+.erinnerungen { display: flex; flex-direction: column; gap: 10px; }
+.erinnerungen__hinweis { margin: 0; font-size: 12.5px; color: var(--warning); }
+.erinnerungen__leer { margin: 0; font-size: 12.5px; color: var(--text-faint); }
+.erinnerungen__gruppe { display: flex; flex-direction: column; gap: 2px; }
+.erinnerungen__thema { font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 2px; }
+.erinnerung { display: flex; align-items: flex-start; gap: 6px; padding: 4px 6px; margin: 0 -6px; border-radius: var(--radius-sm); }
+.erinnerung:hover { background: var(--surface-hover); }
+.erinnerung__text { flex: 1; min-width: 0; margin: 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.erinnerung__knoepfe { display: inline-flex; gap: 2px; opacity: 0; }
+.erinnerung:hover .erinnerung__knoepfe,
+.erinnerung__knoepfe:focus-within { opacity: 1; }
+.erinnerungen__fuss { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.erinnerungen__frage { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; color: var(--text-muted); }
+.erinnerung-form { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.erinnerung-form .input { width: 100%; }
+.erinnerung-form textarea { resize: vertical; font: inherit; font-size: 13px; line-height: 1.5; }
+.erinnerung-form__knoepfe { display: flex; justify-content: flex-end; gap: 6px; }
+
+@media (hover: none) {
+  .kontextdatei__weg,
+  .erinnerung__knoepfe { opacity: 1; }
+}
+
+/* Nach dem Platz, den die Seite wirklich hat — nicht nach der Fensterbreite:
+   Seitenleiste und Vorschau nehmen ihr Breite weg, und bei 1440 px mit
+   Leiste blieben links nur 370 px; der Modellknopf ragte in die Karten. */
+.projektseite { container: projektseite / inline-size; width: min(1180px, 100%); max-width: none; box-sizing: border-box; }
+@container projektseite (max-width: 960px) {
+  .projektseite__raster { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  /* Reihenfolge: Eingabefeld, dann die Karten, dann die Chats — sonst stünden
+     Kontext und Erinnerungen bei vielen Chats ganz unten. */
+  .projektseite__haupt { display: contents; }
+  .projektseite__haupt > .composer { order: 1; }
+  .projektseite__leiste { order: 2; }
+  .projektseite__abschnitt,
+  .projektseite__leer,
+  .projektchats { order: 3; }
+}
+@container projektseite (min-width: 961px) and (max-width: 1080px) {
+  .projektseite__raster { grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+}
+
+/* Dateien ins Fenster ziehen: das Eingabefeld zeigt, dass es sie aufnimmt. */
+.composer { position: relative; }
+.composer[data-ziehen] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring), var(--shadow-lg); }
+.composer__ablage {
+  position: absolute; inset: 0; z-index: 2;
+  display: grid; place-items: center;
+  border-radius: inherit; background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--accent); font-size: 14px; font-weight: 500; pointer-events: none;
+}
+.warteschlange { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.warteschlange__eintrag {
+  display: flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 5px 6px 5px 10px; border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
+  background: var(--surface); font-size: 13px; color: var(--text-muted);
+}
+.warteschlange__marke { flex: none; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); }
+.warteschlange__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.composer__schalter {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--accent);
+  padding: 3px 4px 3px 9px; border-radius: 999px;
+  background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.composer__schalter button { border: 0; background: none; color: inherit; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 5px; border-radius: 999px; }
+.composer__schalter button:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.composer__liest { font-size: 12px; color: var(--text-muted); padding: 4px 8px; border: 1px dashed var(--border); border-radius: var(--radius-sm); }
+
+/* Eigene Nachricht mit Aktionen darunter (Bearbeiten, Kopieren, ‹ 2/3 ›). */
+.msg-user-block { align-self: flex-end; max-width: 82%; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; min-width: 0; }
+.msg-user-block .msg-user { align-self: auto; max-width: 100%; }
+.msg-user-block--bearbeiten { width: min(640px, 100%); max-width: 100%; }
+.msg-user__aktionen { display: flex; align-items: center; gap: 2px; opacity: 0; transition: opacity 120ms ease; }
+.msg-user-block:hover .msg-user__aktionen,
+.msg-user__aktionen:focus-within { opacity: 1; }
+.msg-bearbeiten { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 10px; border: 1px solid var(--border-strong); border-radius: var(--radius-lg); background: var(--surface); }
+.msg-bearbeiten textarea { width: 100%; resize: vertical; font: inherit; line-height: 1.5; border: 0; box-shadow: none; padding: 2px 4px; }
+.msg-bearbeiten__knoepfe { display: flex; justify-content: flex-end; gap: 6px; }
+.zweig { display: inline-flex; align-items: center; gap: 2px; margin-right: 4px; color: var(--text-muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.zweig__zahl { min-width: 34px; text-align: center; }
+@media (hover: none) {
+  .msg-user__aktionen { opacity: 1; }
+}
+@media (max-width: 760px) {
+  .msg-user-block { max-width: 92%; }
+}
+
+/* Handy: unter der Antwort nur Symbole — die Beschriftung
+   bleibt als Tooltip und für Vorleseprogramme erhalten. */
+@media (max-width: 760px) {
+  .msg-aktionen { gap: 2px; align-items: center; }
+  .msg-aktionen .btn { font-size: 0; gap: 0; padding: 8px; min-width: 38px; min-height: 38px; justify-content: center; }
+}
