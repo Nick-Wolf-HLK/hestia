@@ -25,9 +25,17 @@ Ready-made packages are on the [Releases page](https://github.com/Nick-Wolf-HLK/
 | `Hestia-<version>-arm64.dmg` | Mac with Apple Silicon (M1 and newer) |
 | `Hestia-<version>-x64.dmg` | Mac with Intel |
 
-The macOS builds are made automatically on GitHub and are **not signed**: on first
-start, right-click the app → "Open" and confirm. They are new and less tested than
-the Linux builds — feedback is welcome.
+The macOS builds are made automatically on GitHub. They are ad-hoc signed but **not
+notarized** (no Apple developer account), so macOS asks once on first start:
+
+1. Drag Hestia into *Applications* and open it — macOS says it cannot verify the developer.
+   Click "Done".
+2. Open *System Settings → Privacy & Security*, scroll down and click **"Open Anyway"**
+   next to Hestia, then confirm.
+
+Alternatively, in Terminal: `xattr -dr com.apple.quarantine /Applications/Hestia.app`
+
+The macOS builds are newer and less tested than the Linux builds — feedback is welcome.
 
 ## Origin
 

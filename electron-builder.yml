@@ -36,8 +36,10 @@ linux:
   mimeTypes:
     - x-scheme-handler/hestia
 
-# macOS: ohne Apple-Entwicklerkonto unsigniert — beim ersten Öffnen per
-# Rechtsklick → „Öffnen“ bestätigen. Gebaut wird auf GitHub (siehe .github/workflows).
+# macOS: ohne Apple-Entwicklerkonto nur ad-hoc signiert (build/adhoc-sign.cjs),
+# nicht notarisiert. Gebaut wird auf GitHub (siehe .github/workflows).
+afterPack: build/adhoc-sign.cjs
+
 mac:
   target:
     - target: dmg
