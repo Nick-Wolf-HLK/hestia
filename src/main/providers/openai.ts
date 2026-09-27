@@ -13,6 +13,7 @@ import {
   type ProviderClient,
   type StopReason
 } from './types'
+import { repariereArgs } from './zeichen'
 
 interface ModelsResponse {
   data?: { id: string }[]
@@ -218,7 +219,7 @@ export function createOpenAiClient(id: string, baseUrl: string, apiKey?: string,
         handlers.onToolCall?.({
           id: entry.id || `call_${Math.random().toString(36).slice(2, 10)}`,
           name: entry.name,
-          args: safeParse(entry.args)
+          args: repariereArgs(safeParse(entry.args))
         })
       }
       return { stopReason }

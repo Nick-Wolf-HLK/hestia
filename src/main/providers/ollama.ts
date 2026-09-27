@@ -10,6 +10,7 @@ import {
   type ProviderClient,
   type StopReason
 } from './types'
+import { repariereArgs } from './zeichen'
 
 interface TagsResponse {
   models?: {
@@ -181,7 +182,7 @@ export function createOllamaClient(id: string, baseUrl: string, apiKey?: string)
             handlers.onToolCall?.({
               id: `call_${Math.random().toString(36).slice(2, 10)}`,
               name: fn.name,
-              args: typeof args === 'string' ? safeParse(args) : (args ?? {})
+              args: repariereArgs(typeof args === 'string' ? safeParse(args) : (args ?? {}))
             })
           }
         }
