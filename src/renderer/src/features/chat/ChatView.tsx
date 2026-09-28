@@ -601,7 +601,8 @@ function ThinkingBlock({ text, streaming, t }: { text: string; streaming: boolea
   return (
     <div className="denken" data-offen={open || undefined} data-live={streaming || undefined}>
       <button type="button" className="denken__kopf" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-        <span>{streaming ? t('chat.thinking') : t('chat.thoughts')}</span>
+        {/* Den Zustand („Denkt nach …“) zeigt die Laufzeile darunter — hier nur die Überschrift. */}
+        <span>{t('chat.thoughts')}</span>
         <IconChevronDown size={13} className="denken__pfeil" />
       </button>
       <div
