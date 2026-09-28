@@ -5,6 +5,7 @@
 import type { ModelInfo } from '@shared/types'
 import {
   getJson,
+  modellFehler,
   postJson,
   readLines,
   ProviderError,
@@ -190,7 +191,7 @@ export function createOpenAiClient(id: string, baseUrl: string, apiKey?: string,
         } catch {
           continue
         }
-        if (chunk.error?.message) throw new ProviderError('Modellfehler', chunk.error.message)
+        if (chunk.error?.message) throw modellFehler(chunk.error.message)
 
         const delta = chunk.choices?.[0]?.delta
         if (delta?.content) handlers.onText?.(delta.content)

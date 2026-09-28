@@ -2,6 +2,7 @@
 import type { ModelInfo } from '@shared/types'
 import {
   getJson,
+  modellFehler,
   postJson,
   readLines,
   ProviderError,
@@ -159,7 +160,7 @@ export function createOllamaClient(id: string, baseUrl: string, apiKey?: string)
         } catch {
           continue
         }
-        if (chunk.error) throw new ProviderError('Modellfehler', chunk.error)
+        if (chunk.error) throw modellFehler(chunk.error)
 
         const content = chunk.message?.content
         if (content) {

@@ -21,7 +21,7 @@ import type { Store } from './db'
 import type { SettingsService } from './settings'
 import { antwortRaum, denkBudget, denkRegel } from '@shared/reasoning'
 import type { ProviderRegistry } from './providers'
-import type { GenerateHandlers, GenerateRequest, LlmMessage, ToolCall } from './providers/types'
+import { ProviderError, istWerkzeugFormatFehler, type GenerateHandlers, type GenerateRequest, type LlmMessage, type ToolCall } from './providers/types'
 import { log } from './logger'
 import { computeMetrics, estimateTokens } from './metrics'
 import { tiefenrecherche, tiefGrundlage, type ModellFrage, type Schritte } from './research/tief'
@@ -623,8 +623,44 @@ export class ChatRunner {
           }
         }
         let result: Awaited<ReturnType<typeof resolved.client.generate>>
+        /*
+         * Kaputter Werkzeugaufruf (der Anbieter kann ihn nicht lesen und bricht
+         * ab): bis zu zweimal neu fragen, mit einem Hinweis aufs Format. Der
+         * lange Anfang der Unterhaltung liegt dann schon im Zwischenspeicher
+         * des Anbieters — der neue Versuch kostet kaum Zeit.
+         */
+        const frage = async (): Promise<Awaited<ReturnType<typeof resolved.client.generate>>> => {
+          for (let versuch = 0; ; versuch++) {
+            try {
+              return await resolved.client.generate(
+                versuch === 0
+                  ? anfrage
+                  : {
+                      ...anfrage,
+                      messages: [
+                        ...anfrage.messages,
+                        {
+                          role: 'user',
+                          content:
+                            'Dein letzter Werkzeugaufruf war fehlerhaft formatiert und konnte nicht gelesen werden. ' +
+                            'Rufe das Werkzeug noch einmal mit vollständigem, gültigem Aufruf auf — oder antworte ohne Werkzeug.'
+                        }
+                      ]
+                    },
+                mitBudget,
+                schritt.signal
+              )
+            } catch (fehler) {
+              const detail = fehler instanceof ProviderError ? fehler.detail : undefined
+              if (versuch >= 2 || schritt.signal.aborted || !istWerkzeugFormatFehler(detail)) throw fehler
+              log.warn('Werkzeugaufruf fehlerhaft, neuer Versuch', { chatId: chat.id, versuch: versuch + 1, detail })
+              calls.length = 0
+              griffe.onThinking?.('\n\n— Werkzeugaufruf war fehlerhaft, neuer Versuch —\n\n')
+            }
+          }
+        }
         try {
-          result = await resolved.client.generate(anfrage, mitBudget, schritt.signal)
+          result = await frage()
         } catch (fehler) {
           if (!gekappt || controller.signal.aborted) throw fehler
           result = { stopReason: 'canceled' }

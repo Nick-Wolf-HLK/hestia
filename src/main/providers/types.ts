@@ -79,6 +79,22 @@ export class ProviderError extends Error {
   }
 }
 
+/**
+ * Das Modell hat einen Werkzeugaufruf erzeugt, den der Anbieter nicht lesen
+ * kann (kleine Modelle schließen z. B. das XML falsch). Ein neuer Versuch
+ * gelingt meist — der Lauf fragt deshalb selbst noch einmal.
+ */
+export const WERKZEUG_FORMATFEHLER = 'Das Modell hat einen fehlerhaften Werkzeugaufruf erzeugt. „Wiederholen“ oder ein größeres Modell wählen.'
+
+export function istWerkzeugFormatFehler(text: string | undefined): boolean {
+  return Boolean(text && /tool call parsing failed|XML syntax error|failed to parse tool call|error parsing tool call/i.test(text))
+}
+
+/** Fehler, den der Anbieter mitten im Strom meldet, in einen ProviderError fassen. */
+export function modellFehler(detail: string): ProviderError {
+  return new ProviderError(istWerkzeugFormatFehler(detail) ? WERKZEUG_FORMATFEHLER : 'Modellfehler', detail)
+}
+
 /** Liest einen Fetch-Body zeilenweise (NDJSON oder SSE). */
 export async function* readLines(body: ReadableStream<Uint8Array>): AsyncGenerator<string> {
   const reader = body.getReader()

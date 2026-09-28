@@ -190,3 +190,16 @@ describe('Ablehnungen verständlich', () => {
     expect(ablehnungsText(502, '')).toBe('Anbieter lehnte ab (502)')
   })
 })
+
+describe('Werkzeug-Formatfehler', () => {
+  it('erkennt kaputte Werkzeugaufrufe und meldet sie verständlich', async () => {
+    const { istWerkzeugFormatFehler, modellFehler, WERKZEUG_FORMATFEHLER } = await import('../../src/main/providers/types')
+    const detail = 'XML syntax error on line 2: unexpected end element </function>'
+    expect(istWerkzeugFormatFehler(detail)).toBe(true)
+    expect(istWerkzeugFormatFehler('qwen3.5 tool call parsing failed')).toBe(true)
+    expect(istWerkzeugFormatFehler('model runner has unexpectedly stopped')).toBe(false)
+    expect(modellFehler(detail).message).toBe(WERKZEUG_FORMATFEHLER)
+    expect(modellFehler(detail).detail).toBe(detail)
+    expect(modellFehler('out of memory').message).toBe('Modellfehler')
+  })
+})
