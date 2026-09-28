@@ -2966,3 +2966,51 @@ body.is-resizing .doc-panel__grip {
   .msg-aktionen { gap: 2px; align-items: center; }
   .msg-aktionen .btn { font-size: 0; gap: 0; padding: 8px; min-width: 38px; min-height: 38px; justify-content: center; }
 }
+
+/* Laufanzeige unter einer Antwort, die gerade entsteht: drei Glutpunkte, ein
+   über den Text wandernder Schimmer und die Laufzeit — sichtbar, dass es lebt. */
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--text-faint);
+}
+.live-status__punkte {
+  display: inline-flex;
+  gap: 4px;
+}
+.live-status__punkte i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: live-punkt 1.2s ease-in-out infinite;
+}
+.live-status__punkte i:nth-child(2) { animation-delay: .15s; }
+.live-status__punkte i:nth-child(3) { animation-delay: .3s; }
+.live-status__text {
+  background: linear-gradient(90deg, var(--text-faint) 0%, var(--text-faint) 40%, var(--accent) 50%, var(--text-faint) 60%, var(--text-faint) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: live-schimmer 2s linear infinite;
+}
+.live-status__zeit {
+  font-variant-numeric: tabular-nums;
+  opacity: .8;
+}
+@keyframes live-punkt {
+  0%, 80%, 100% { transform: translateY(0); opacity: .35; }
+  40% { transform: translateY(-4px); opacity: 1; }
+}
+@keyframes live-schimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -150% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-status__punkte i { animation: diktat-puls 1.6s ease-in-out infinite; }
+  .live-status__text { animation: none; color: var(--text-faint); background: none; }
+}

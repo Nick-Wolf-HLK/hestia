@@ -414,10 +414,15 @@ function MessageBlock({
             </button>
           )
         })}
-        {/* „Denkt nach" nur, solange wirklich nichts anderes zu sehen ist —
-            nicht unter einem Werkzeugschritt, der auf eine Freigabe wartet. */}
-        {!text && live && !thinking && !wartet && !message.error && !message.parts.some((p) => p.type === 'tool_call') && (
-          <div style={{ color: 'var(--text-faint)' }}>{t('chat.thinking')}</div>
+        {/* Solange der Lauf arbeitet, aber nichts sichtbar wächst — Denken,
+            Einlesen, ein Werkzeugaufruf, den das Modell im Stillen schreibt —,
+            zeigt eine bewegte Zeile mit Laufzeit, dass es nicht hängt. Nicht
+            während einer Freigabe: dann steht der Lauf wirklich. */}
+        {live && !wartet && !message.error && message.parts.at(-1)?.type !== 'text' && (
+          <LiveStatus
+            seit={message.createdAt}
+            label={message.parts.some((p) => p.type !== 'thinking') ? t('chat.working') : t('chat.thinking')}
+          />
         )}
         {message.error && <div className="msg-error">{message.error}</div>}
       </div>
@@ -559,6 +564,29 @@ function ArtifactButton({ text, t }: { text: string; t: Translate }) {
  * mit. Danach den Anfang, mit einem sanften Auslaufen nach unten. Ein Klick
  * (auf die Zeile oder die Überschrift) klappt alles auf und wieder zu.
  */
+/** Bewegte Statuszeile mit mitlaufender Zeit: zeigt, dass der Lauf lebt. */
+function LiveStatus({ seit, label }: { seit?: number; label: string }) {
+  const start = useRef(seit ?? Date.now())
+  const [jetzt, setJetzt] = useState(() => Date.now())
+  useEffect(() => {
+    const takt = setInterval(() => setJetzt(Date.now()), 1000)
+    return () => clearInterval(takt)
+  }, [])
+  const sekunden = Math.max(0, Math.floor((jetzt - start.current) / 1000))
+  const zeit = sekunden < 60 ? `${sekunden} s` : `${Math.floor(sekunden / 60)}:${String(sekunden % 60).padStart(2, '0')} min`
+  return (
+    <div className="live-status" role="status" aria-live="off">
+      <span className="live-status__punkte" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+      <span className="live-status__text">{label}</span>
+      <span className="live-status__zeit">{zeit}</span>
+    </div>
+  )
+}
+
 function ThinkingBlock({ text, streaming, t }: { text: string; streaming: boolean; t: Translate }) {
   const [open, setOpen] = useState(false)
   const kasten = useRef<HTMLDivElement>(null)
