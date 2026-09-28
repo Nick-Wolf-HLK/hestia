@@ -12,6 +12,7 @@ import { berichtGrundlage, recherchiere } from '../research'
 import { leseSeite, privateIp, suchen } from '../research/web'
 import { isIP } from 'node:net'
 import { createDocument, type DocKind } from '../documents/create'
+import { briefAus } from '../documents/brief'
 import type { Gestaltung } from '../documents/markdown'
 import { documentsDir as defaultDocumentsDir, freierPfad, registerFile } from '../documents/registry'
 import type { DocumentRef } from '@shared/types'
@@ -50,7 +51,7 @@ export const GESTALTUNG_SCHEMA = {
   type: 'object',
   description:
     'Optional: Aussehen (PDF, teils Word). vorlage: schlicht (Vorgabe) = normales Dokument ohne Deckblatt, Titel oben; ' +
-    'brief = für Anschreiben, Bewerbungen und Briefe, ohne Deckblatt, Titelzeile und Seitenzahl — dafür immer brief nehmen; ' +
+    'brief = Briefsatz ohne Deckblatt und Seitenzahl (für Briefe aber besser das Feld `brief` von create_document ausfüllen); ' +
     'modern = serifenlos mit farbigem Deckblatt, für Berichte; klassisch = gesetztes Buch/Heft mit Deckblatt und jedem Kapitel auf neuer Seite, nur wenn ausdrücklich ein Buch oder Heft gewünscht ist. ' +
     'Einzelangaben überschreiben die Vorlage.',
   properties: {
@@ -143,22 +144,42 @@ const SPECS: ToolSpec[] = [
       'Fußzeile mit Seitenzahl. Bilder aus dem Arbeitsordner werden eingebunden mit ' +
       '![Legende](bild.png) — ein Bild allein auf der Zeile; mehrere hintereinander werden eine Bildzeile, ' +
       'das erste wird zum Titelbild des Deckels. Für ein Kinderbuch oder eine Festschrift also: ' +
-      'Kapitelüberschriften mit #, Unterzeile mit `untertitel`, Bilder dazwischen.',
+      'Kapitelüberschriften mit #, Unterzeile mit `untertitel`, Bilder dazwischen. ' +
+      'WICHTIG — Brief, Anschreiben, Bewerbung, Kündigung: IMMER das Feld `brief` ausfüllen und `content` weglassen. ' +
+      'Hestia setzt den Brief dann selbst nach DIN 5008. In `brief.text` nur die Absätze zwischen Anrede und Grußformel — ' +
+      'keine Adressen, kein Datum, kein Betreff, keine Anrede, kein Gruß, keine Überschriften, keine Linien.',
     parameters: {
       type: 'object',
       properties: {
         title: { type: 'string', description: 'Dateiname ohne Endung' },
         format: { type: 'string', enum: ['markdown', 'docx', 'pdf'] },
-        content: { type: 'string', description: 'Vollständiger Inhalt in Markdown' },
+        content: { type: 'string', description: 'Vollständiger Inhalt in Markdown (nicht bei Briefen — dafür `brief`)' },
         path: { type: 'string', description: 'Optional: relativer Zielpfad im Arbeitsordner' },
         untertitel: {
           type: 'string',
           description:
             'Optional, nur PDF: Zeile unter dem Deckeltitel. Nur setzen, wenn der Auftrag eine nennt oder sie sich klar daraus ergibt — sonst weglassen.'
         },
-        gestaltung: GESTALTUNG_SCHEMA
+        gestaltung: GESTALTUNG_SCHEMA,
+        brief: {
+          type: 'object',
+          description: 'Nur für Briefe und Anschreiben. Jedes Feld einfach ausfüllen — Aufbau und Aussehen macht Hestia.',
+          properties: {
+            absender: { type: 'string', description: 'Name, Straße, PLZ Ort, Telefon, E-Mail — eine Angabe pro Zeile' },
+            empfaenger: { type: 'string', description: 'Firma, Abteilung, Ansprechperson, Straße, PLZ Ort — eine Angabe pro Zeile' },
+            ort_datum: { type: 'string', description: 'z. B. „Vilshofen, 28. September 2026“ (leer: heutiges Datum)' },
+            betreff: { type: 'string', description: 'Eine Zeile, ohne das Wort „Betreff“' },
+            bezug: { type: 'string', description: 'Optional: Referenz- oder Kennziffer, eine Zeile' },
+            anrede: { type: 'string', description: 'z. B. „Sehr geehrte Frau Muster,“' },
+            text: { type: 'string', description: 'Nur die Absätze des Briefs, durch Leerzeilen getrennt; Aufzählung mit „- “ erlaubt' },
+            gruss: { type: 'string', description: 'Optional, Vorgabe „Mit freundlichen Grüßen“' },
+            name: { type: 'string', description: 'Name unter dem Gruß' },
+            anlagen: { type: 'array', items: { type: 'string' }, description: 'Optional: beigelegte Unterlagen' }
+          },
+          required: ['empfaenger', 'betreff', 'text']
+        }
       },
-      required: ['title', 'format', 'content'],
+      required: ['title', 'format'],
       additionalProperties: false
     }
   },
@@ -585,8 +606,14 @@ export async function createDocumentTool(
   if (!['markdown', 'docx', 'pdf'].includes(kind)) {
     return { ok: false, output: 'format muss markdown, docx oder pdf sein' }
   }
-  const title = String(args.title ?? '').trim() || 'Dokument'
-  const content = String(args.content ?? '')
+  const brief = briefAus(rohArgs ?? {})
+  // Liegen die Brief-Felder direkt in den Angaben, ist `name` die Unterschrift, kein Dateiname.
+  const titelRoh = brief ? (rohArgs.title ?? rohArgs.titel ?? rohArgs.dateiname) : args.title
+  const title = String(titelRoh ?? '').trim() || (brief ? 'Anschreiben' : 'Dokument')
+  if (brief && !brief.text.trim()) {
+    return { ok: false, output: 'Der Brief hat keinen Text: Die Absätze gehören in „brief.text“. Nichts geschrieben.' }
+  }
+  const content = brief ? brief.text : String(args.content ?? '')
   if (!content.trim()) {
     return { ok: false, output: 'Kein Text übergeben: Der Inhalt des Dokuments gehört als Markdown in das Feld „content“ (Titel in „title“). Nichts geschrieben.' }
   }
@@ -613,7 +640,7 @@ export async function createDocumentTool(
       chatId: context.chatId,
       kind: 'write',
       target: shown,
-      detail: `Dokument erzeugen: ${title} (${kind}, ${content.length} Zeichen)`,
+      detail: `${brief ? 'Brief' : 'Dokument'} erzeugen: ${title} (${kind}, ${content.length} Zeichen)`,
       rememberKey: `write:${target}`
     }))
   if (!allowed) return { ok: false, output: 'Vom Benutzer abgelehnt.' }
@@ -624,7 +651,8 @@ export async function createDocumentTool(
     markdown: content,
     title,
     untertitel: typeof args.untertitel === 'string' ? args.untertitel : undefined,
-    gestaltung: gestaltungAus(args.gestaltung)
+    gestaltung: gestaltungAus(args.gestaltung),
+    brief: brief ?? undefined
   })
   registerFile(created.path)
   return {

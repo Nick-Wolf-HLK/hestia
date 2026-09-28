@@ -16,6 +16,7 @@
  * Auch Dateien, die Hestia nicht selbst erzeugt hat (im Agent-Ordner),
  * lassen sich lesen und übernehmen — dann aus ihrem Text neu gesetzt.
  */
+import { briefAlsQuelle, briefAus } from './documents/brief'
 import { copyFile, mkdir, readFile, stat } from 'node:fs/promises'
 import { basename, extname, join, relative } from 'node:path'
 import type { Chat } from '@shared/types'
@@ -390,6 +391,7 @@ export function mitDokumenten(runtime: ToolRuntime | undefined, ctx: DokumentKon
       const ergebnis = await runtime.execute(callId, name, angaben)
       if (name === 'create_document' && ergebnis.ok && ergebnis.document) {
         const a = angaben as Record<string, unknown>
+        const brief = briefAus(a)
         const dok = ctx.store.speichereDokument({
           chatId: ctx.chat.id,
           projectId: ctx.chat.projectId,
@@ -397,7 +399,8 @@ export function mitDokumenten(runtime: ToolRuntime | undefined, ctx: DokumentKon
           art: ergebnis.document.kind as DocKind,
           titel: text(a.title).trim() || ergebnis.document.title || basename(ergebnis.document.path),
           untertitel: text(a.untertitel).trim() || undefined,
-          markdown: text(a.content),
+          // Ein Brief aus Feldern wird als lesbare Feldliste gemerkt — so bleibt er beim Bearbeiten ein Brief.
+          markdown: brief ? briefAlsQuelle(brief) : text(a.content),
           gestaltung: gestaltungAus(a.gestaltung)
         })
         return { ...ergebnis, output: `${ergebnis.output} (Fassung ${dok.version}; später mit dokument_bearbeiten änderbar)` }

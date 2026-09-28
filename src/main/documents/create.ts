@@ -27,6 +27,7 @@ import {
 } from 'docx'
 import { gestaltungAufloesen, parseMarkdown, renderHtmlDocument, type Block, type Gestaltung, type Inline } from './markdown'
 import { log } from '../logger'
+import { briefAlsMarkdown, briefAusQuelle, briefBloecke, briefHtml, type Brief } from './brief'
 
 export type DocKind = 'markdown' | 'docx' | 'pdf'
 
@@ -54,6 +55,8 @@ export interface CreateInput {
   untertitel?: string
   /** Aussehen (PDF vollständig, Word: Schrift, Akzentfarbe, Titelzeile). */
   gestaltung?: Gestaltung
+  /** Brief aus festen Feldern — dann wird `markdown` nicht gebraucht. */
+  brief?: Brief
 }
 
 /** Anrede oder Grußformel am Zeilenanfang: dann ist es ein Anschreiben oder Brief. */
@@ -63,6 +66,9 @@ export function siehtAusWieBrief(markdown: string): boolean {
 
 /** Erzeugt die Datei und liefert Pfad plus Bytezahl zurück. */
 export async function createDocument(eingabe: CreateInput): Promise<CreateResult> {
+  // Ein Brief kommt als Felder oder — beim Neusetzen einer Fassung — als gespeicherte Quelle.
+  const brief = eingabe.brief ?? briefAusQuelle(eingabe.markdown)
+  if (brief) return createBrief(eingabe, brief)
   // Ohne ausdrückliche Vorlage: ein Brief sieht aus wie ein Brief, alles andere
   // wie ein normales Dokument — nicht wie ein gesetztes Buch mit Deckblatt.
   const input: CreateInput = eingabe.gestaltung?.vorlage
@@ -100,6 +106,27 @@ export async function createDocument(eingabe: CreateInput): Promise<CreateResult
   return { path: input.path, kind: input.kind, bytes: bytes.byteLength }
 }
 
+/** Brief aus Feldern: immer derselbe Aufbau, gleich welches Modell ihn geschrieben hat. */
+async function createBrief(input: CreateInput, brief: Brief): Promise<CreateResult> {
+  await mkdir(dirname(input.path), { recursive: true })
+  const schrift = input.gestaltung?.schrift === 'serif' ? 'serif' : 'sans'
+  let bytes: Buffer
+  switch (input.kind) {
+    case 'markdown':
+      bytes = Buffer.from(briefAlsMarkdown(brief), 'utf8')
+      break
+    case 'docx':
+      bytes = await buildBriefDocx(brief, schrift)
+      break
+    case 'pdf':
+      bytes = await buildPdf(briefHtml(brief, schrift), brief.betreff || input.title || 'Brief', false)
+      break
+  }
+  await writeFile(input.path, bytes)
+  log.info('Dokument erstellt', { art: input.kind, pfad: input.path, bytes: bytes.byteLength, brief: true })
+  return { path: input.path, kind: input.kind, bytes: bytes.byteLength }
+}
+
 function ensureTrailingNewline(text: string): string {
   return text.endsWith('\n') ? text : `${text}\n`
 }
@@ -122,18 +149,31 @@ const HEADING_BY_LEVEL: Record<number, (typeof HeadingLevel)[keyof typeof Headin
 }
 
 
-function inlineWord(parts: Inline[]): (TextRun | ExternalHyperlink)[] {
+/*
+ * Schriften, die Word auf Mac und Windows mitbringt (LibreOffice ersetzt sie
+ * maßgleich). Mit „DejaVu“ fiel Word stumm auf Times zurück — und Größen und
+ * Umbrüche passten nicht mehr zur Vorschau.
+ */
+const WORD_SANS = 'Arial'
+const WORD_SERIF = 'Georgia'
+const WORD_MONO = 'Courier New'
+
+/** Maße in Twips (1 cm = 567). */
+const CM = 567
+
+/** Schrift und Größe stehen an jedem Stück: Pages und die macOS-Vorschau übergehen die Formatvorlagen. */
+function inlineWord(parts: Inline[], schrift?: string, groesse?: number): (TextRun | ExternalHyperlink)[] {
   return parts.flatMap((part): (TextRun | ExternalHyperlink)[] =>
     part.link && /^https?:/i.test(part.link)
-      ? [new ExternalHyperlink({ children: [new TextRun({ text: part.text, style: 'Hyperlink' })], link: part.link })]
+      ? [new ExternalHyperlink({ children: [new TextRun({ text: part.text, style: 'Hyperlink', font: schrift, size: groesse })], link: part.link })]
       : // Zeilenumbrüche im Absatz werden in Word zu echten Umbrüchen.
         part.text.split('\n').map(
-          (stueck, i) => new TextRun({ text: stueck, bold: part.bold, italics: part.italic, font: part.code ? 'DejaVu Sans Mono' : undefined, break: i > 0 ? 1 : undefined })
+          (stueck, i) => new TextRun({ text: stueck, bold: part.bold, italics: part.italic, font: part.code ? WORD_MONO : schrift, size: groesse, break: i > 0 ? 1 : undefined })
         )
   )
 }
 
-function tableOf(rows: Inline[][][]): Table {
+function tableOf(rows: Inline[][][], schrift?: string, groesse?: number): Table {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: rows.map(
@@ -144,7 +184,7 @@ function tableOf(rows: Inline[][][]): Table {
               new TableCell({
                 shading: rowIndex === 0 ? { type: ShadingType.CLEAR, fill: 'F2F0EC' } : undefined,
                 margins: { top: 80, bottom: 80, left: 110, right: 110 },
-                children: [new Paragraph({ children: inlineWord(cell) })]
+                children: [new Paragraph({ children: inlineWord(cell, schrift, groesse) })]
               })
           )
         })
@@ -156,14 +196,18 @@ async function buildDocx(blocks: Block[], title: string, gestaltungRoh?: Gestalt
   const gestaltung = gestaltungAufloesen(gestaltungRoh)
   // Word kennt nur Hex ohne Raute; Farbnamen bleiben bei der Vorgabe.
   const akzent = /^#[0-9a-f]{6}$/i.test(gestaltung.akzent ?? '') ? gestaltung.akzent!.slice(1) : undefined
-  const schrift = gestaltung.schrift === 'serif' ? 'DejaVu Serif' : 'DejaVu Sans'
+  const schrift = gestaltung.schrift === 'serif' ? WORD_SERIF : WORD_SANS
+  const brief = gestaltung.vorlage === 'brief'
+  const textfarbe = '1B1A17'
+  // Anschreiben in 10,5 pt: üblich im Brief, und eine Seite bleibt eine Seite.
+  const groesse = brief ? 21 : 22
   // Ein Brief hat keine Titelzeile — er beginnt mit dem, was darin steht.
   const children: (Paragraph | Table)[] =
-    gestaltung.vorlage === 'brief'
+    brief
       ? []
       : [
           new Paragraph({
-            children: [new TextRun({ text: title, color: akzent })],
+            children: [new TextRun({ text: title, color: akzent, font: schrift })],
             heading: HeadingLevel.TITLE,
             spacing: { after: 240 }
           })
@@ -172,7 +216,19 @@ async function buildDocx(blocks: Block[], title: string, gestaltungRoh?: Gestalt
   for (const block of blocks) {
     switch (block.type) {
       case 'heading': {
-        const first = block.inline.map((part) => new TextRun({ text: part.text, bold: part.bold, italics: part.italic, color: akzent }))
+        // Im Brief sind „Überschriften“ Absender, Empfänger oder Betreff: fett in
+        // Textgröße, keine Word-Überschrift in Farbe und drei Größen.
+        if (brief) {
+          children.push(
+            new Paragraph({
+              children: block.inline.map((part) => new TextRun({ text: part.text, bold: true, italics: part.italic, font: schrift, size: groesse })),
+              spacing: { before: 120, after: 0 },
+              keepNext: true
+            })
+          )
+          break
+        }
+        const first = block.inline.map((part) => new TextRun({ text: part.text, bold: part.bold, italics: part.italic, color: akzent, font: schrift }))
         children.push(
           new Paragraph({
             heading: HEADING_BY_LEVEL[Math.min(Math.max(block.level, 1), 6)],
@@ -183,22 +239,23 @@ async function buildDocx(blocks: Block[], title: string, gestaltungRoh?: Gestalt
         break
       }
       case 'paragraph':
-        children.push(new Paragraph({ children: inlineWord(block.inline), spacing: { after: 140 } }))
+        children.push(new Paragraph({ children: inlineWord(block.inline, schrift, groesse), spacing: { after: brief ? 150 : 140 } }))
         break
       case 'bullets':
-        for (const item of block.items) {
-          children.push(new Paragraph({ children: inlineWord(item), bullet: { level: 0 }, spacing: { after: 60 } }))
-        }
+        block.items.forEach((item, i) => {
+          const letzte = i === block.items.length - 1
+          children.push(new Paragraph({ children: inlineWord(item, schrift, groesse), bullet: { level: 0 }, spacing: { after: letzte ? 150 : 40 } }))
+        })
         break
       case 'numbered':
         for (const item of block.items) {
-          children.push(new Paragraph({ children: inlineWord(item), numbering: { reference: 'hestia-nummern', level: 0 }, spacing: { after: 60 } }))
+          children.push(new Paragraph({ children: inlineWord(item, schrift, groesse), numbering: { reference: 'hestia-nummern', level: 0 }, spacing: { after: 60 } }))
         }
         break
       case 'quote':
         children.push(
           new Paragraph({
-            children: block.inline.map((part) => new TextRun({ text: part.text, italics: true, color: '5A554C' })),
+            children: block.inline.map((part) => new TextRun({ text: part.text, italics: true, color: '5A554C', font: schrift, size: groesse })),
             indent: { left: 480 },
             spacing: { after: 140 },
             border: { left: { style: BorderStyle.SINGLE, size: 12, color: 'D6CFC4', space: 8 } }
@@ -209,7 +266,7 @@ async function buildDocx(blocks: Block[], title: string, gestaltungRoh?: Gestalt
         for (const line of block.text.split('\n')) {
           children.push(
             new Paragraph({
-              children: [new TextRun({ text: line.length > 0 ? line : ' ', font: 'DejaVu Sans Mono', size: 19 })],
+              children: [new TextRun({ text: line.length > 0 ? line : ' ', font: WORD_MONO, size: 19 })],
               shading: { type: ShadingType.CLEAR, fill: 'F7F6F3' },
               spacing: { after: 0 }
             })
@@ -217,10 +274,15 @@ async function buildDocx(blocks: Block[], title: string, gestaltungRoh?: Gestalt
         }
         break
       case 'table':
-        children.push(tableOf(block.rows))
+        children.push(tableOf(block.rows, schrift, groesse))
         children.push(new Paragraph({ text: '', spacing: { after: 120 } }))
         break
       case 'rule':
+        // Im Brief trennt Abstand die Blöcke, keine Linie quer übers Blatt.
+        if (brief) {
+          children.push(new Paragraph({ text: '', spacing: { after: 120 } }))
+          break
+        }
         children.push(
           new Paragraph({
             text: '',
@@ -245,13 +307,127 @@ async function buildDocx(blocks: Block[], title: string, gestaltungRoh?: Gestalt
       ]
     },
     styles: {
+      // Überschriften in der Dokumentschrift und in einer Farbe statt Words
+      // Vorgabe (blau, andere Schrift) — sonst wirkt jedes Dokument zusammengewürfelt.
       default: {
-        document: { run: { font: schrift, size: 22, color: '1B1A17' } }
-      }
+        document: {
+          run: { font: schrift, size: groesse, color: textfarbe },
+          paragraph: { spacing: { line: brief ? 252 : 276 } }
+        },
+        title: { run: { font: schrift, size: 40, bold: true, color: akzent ?? textfarbe } },
+        heading1: { run: { font: schrift, size: 30, bold: true, color: akzent ?? textfarbe } },
+        heading2: { run: { font: schrift, size: 26, bold: true, color: akzent ?? textfarbe } },
+        heading3: { run: { font: schrift, size: 23, bold: true, color: textfarbe } },
+        heading4: { run: { font: schrift, size: 22, bold: true, color: textfarbe } },
+        heading5: { run: { font: schrift, size: 22, bold: true, italics: true, color: textfarbe } },
+        heading6: { run: { font: schrift, size: 22, italics: true, color: textfarbe } }
+      },
+      // Dasselbe noch einmal im Format „Normal“: Pages, TextEdit und die
+      // Vorschau von macOS lesen die Dokument-Vorgabe nicht und nähmen Times.
+      paragraphStyles: [
+        {
+          id: 'Normal',
+          name: 'Normal',
+          quickFormat: true,
+          run: { font: schrift, size: groesse, color: textfarbe },
+          paragraph: { spacing: { line: brief ? 252 : 276 } }
+        }
+      ]
     },
-    sections: [{ properties: {}, children }]
+    sections: [
+      {
+        // A4; der Brief mit Rändern nach DIN 5008, alles andere mit 2 cm.
+        properties: {
+          page: {
+            size: { width: 11906, height: 16838 },
+            margin: brief
+              ? { top: 1.5 * CM, bottom: 1.5 * CM, left: 2.5 * CM, right: 2 * CM }
+              : { top: 2 * CM, bottom: 2 * CM, left: 2.2 * CM, right: 2.2 * CM }
+          }
+        },
+        children
+      }
+    ]
   })
 
+  return Packer.toBuffer(doc)
+}
+
+/** Brief nach DIN 5008 in Word: Kopf, Anschrift, Datum rechts, Betreff fett, Text, Gruß, Anlagen. */
+async function buildBriefDocx(b: Brief, art: 'sans' | 'serif'): Promise<Buffer> {
+  const schrift = art === 'serif' ? WORD_SERIF : WORD_SANS
+  const groesse = 21
+  const farbe = '1B1A17'
+  const lauf = (text: string, extra: { bold?: boolean; size?: number; color?: string; italics?: boolean; umbruch?: boolean } = {}): TextRun =>
+    new TextRun({ text, font: schrift, size: extra.size ?? groesse, bold: extra.bold, italics: extra.italics, color: extra.color ?? farbe, break: extra.umbruch ? 1 : undefined })
+  const zeilenLaeufe = (liste: string[], extra: { bold?: boolean; size?: number; color?: string } = {}): TextRun[] =>
+    liste.map((z, i) => lauf(z, { ...extra, umbruch: i > 0 }))
+
+  const children: Paragraph[] = []
+  const [kopfName, ...kopfRest] = b.absender
+  if (kopfName) {
+    children.push(new Paragraph({ children: [lauf(kopfName, { bold: true, size: 28 })], spacing: { after: 40 } }))
+    if (kopfRest.length) children.push(new Paragraph({ children: [lauf(kopfRest.join(' · '), { size: 18, color: '5B5650' })], spacing: { after: 0 } }))
+    children.push(
+      new Paragraph({ text: '', border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: 'CFC8BC', space: 4 } }, spacing: { after: 480 } })
+    )
+  }
+  // Anschriftfeld: feste Höhe, damit Datum und Betreff immer an derselben Stelle stehen.
+  const anschrift = b.empfaenger.length ? b.empfaenger : ['']
+  children.push(new Paragraph({ children: zeilenLaeufe(anschrift), spacing: { after: Math.max(240, (6 - anschrift.length) * 250) } }))
+  children.push(new Paragraph({ children: [lauf(b.ortDatum)], alignment: AlignmentType.RIGHT, spacing: { after: 360 } }))
+  children.push(new Paragraph({ children: [lauf(b.betreff, { bold: true })], spacing: { after: b.bezug ? 0 : 360 } }))
+  if (b.bezug) children.push(new Paragraph({ children: [lauf(b.bezug)], spacing: { after: 360 } }))
+  children.push(new Paragraph({ children: [lauf(b.anrede)], spacing: { after: 180 } }))
+
+  for (const block of briefBloecke(b.text)) {
+    if (block.type === 'paragraph' || block.type === 'quote') {
+      children.push(new Paragraph({ children: inlineWord(block.inline, schrift, groesse), spacing: { after: 150 } }))
+    } else if (block.type === 'bullets' || block.type === 'numbered') {
+      block.items.forEach((item, i) => {
+        const letzte = i === block.items.length - 1
+        children.push(
+          new Paragraph({
+            children: inlineWord(item, schrift, groesse),
+            ...(block.type === 'bullets' ? { bullet: { level: 0 } } : { numbering: { reference: 'hestia-nummern', level: 0 } }),
+            spacing: { after: letzte ? 150 : 40 }
+          })
+        )
+      })
+    } else if (block.type === 'code') {
+      children.push(new Paragraph({ children: zeilenLaeufe(block.text.split('\n')), spacing: { after: 150 } }))
+    } else if (block.type === 'table') {
+      for (const row of block.rows) children.push(new Paragraph({ children: inlineWord(row.flat(), schrift, groesse), spacing: { after: 60 } }))
+    }
+  }
+
+  children.push(new Paragraph({ children: [lauf(b.gruss)], spacing: { before: 120, after: 720 }, keepNext: true }))
+  children.push(new Paragraph({ children: [lauf(b.name)], spacing: { after: 0 } }))
+  if (b.anlagen.length) {
+    children.push(new Paragraph({ children: [lauf('Anlagen', { bold: true, size: 19 })], spacing: { before: 360, after: 40 }, keepNext: true }))
+    for (const a of b.anlagen) children.push(new Paragraph({ children: [lauf(a, { size: 19 })], bullet: { level: 0 }, spacing: { after: 0 } }))
+  }
+
+  const doc = new Document({
+    title: b.betreff,
+    creator: 'Hestia',
+    description: 'In Hestia erzeugter Brief',
+    numbering: {
+      config: [{ reference: 'hestia-nummern', levels: [{ level: 0, format: 'decimal', text: '%1.', alignment: AlignmentType.START }] }]
+    },
+    styles: {
+      default: { document: { run: { font: schrift, size: groesse, color: farbe }, paragraph: { spacing: { line: 252 } } } },
+      paragraphStyles: [{ id: 'Normal', name: 'Normal', quickFormat: true, run: { font: schrift, size: groesse, color: farbe }, paragraph: { spacing: { line: 252 } } }]
+    },
+    sections: [
+      {
+        properties: {
+          page: { size: { width: 11906, height: 16838 }, margin: { top: 1.5 * CM, bottom: 1.5 * CM, left: 2.5 * CM, right: 2 * CM } }
+        },
+        children
+      }
+    ]
+  })
   return Packer.toBuffer(doc)
 }
 
